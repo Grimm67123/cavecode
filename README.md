@@ -1,69 +1,29 @@
-# 🪨 CaveCode ⚡
+🪨 CaveCode ⚡
 
-> **why input many code when few code do trick**
->
-> LLMs and AI coding agents consume massive amounts of context tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode is an AST-aware source-code compressor that strips unnecessary token overhead before passing code to AI agents. It reduces input token usage by up to **~80%+** while preserving critical structural, syntactic, and semantic information across three configurable compression tiers.
+«why input many code when few code do trick
 
-- 🌐 **[Web Playground](https://grimm67123.github.io/cavecode/)**: Try compression modes directly in your browser.
-- 🤖 **Agent Protocol**: Includes an [AGENT.md](AGENT.md) documentation file for AI coding agents.
+LLMs and AI coding agents consume massive amounts of context tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode is an AST-aware source-code compressor that turns source code into a compact, AI-readable representation, reducing input token usage by up to ~80%+ while preserving critical structural, syntactic, and semantic information across three configurable compression tiers.
 
----
+Compressed output is intended for AI context and understanding, not execution or editing. Agents continue to read and edit the original source files.»
 
-## Supported Languages
-
-CaveCode supports 9 programming languages with dedicated AST parsers and syntax transformers:
-
-- **Python** (`.py`)
-- **JavaScript** (`.js`, `.jsx`, `.mjs`, `.cjs`)
-- **TypeScript** (`.ts`, `.tsx`)
-- **Rust** (`.rs`)
-- **Go** (`.go`)
-- **Java** (`.java`)
-- **C++** (`.cpp`, `.cc`, `.cxx`, `.hpp`)
-- **C#** (`.cs`)
-- **C** (`.c`, `.h`)
+- 🌐 "Web Playground" (https://grimm67123.github.io/cavecode/): Try compression modes directly in your browser.
+- 🤖 Agent Protocol: Includes an "AGENT.md" (AGENT.md) documentation file for AI coding agents.
 
 ---
 
-## Installation
-
-CaveCode is installed directly from the Git repository (it is not published to PyPI):
-
-```bash
-# Install directly via pip
-pip install git+https://github.com/cavecode/cavecode.git
-```
-
-Or clone and install in editable development mode:
-
-```bash
-git clone https://github.com/cavecode/cavecode.git
-cd cavecode
-pip install -e .
-```
-
-Verify installation:
-
-```bash
-cavecode version
-```
-
----
-
-## Compression Modes & Token Savings
+Compression Modes & Token Savings
 
 CaveCode provides three distinct compression tiers:
 
-| Mode | Token Savings |
-| :--- | :--- |
-| **`lite`** | **~25% – ~30%** |
-| **`medium`** | **~35% – ~50%** |
-| **`ultra`** | **~80% – ~85%+** |
+Mode| Token Savings
+"lite"| ~25% – ~30%
+"medium"| ~35% – ~50%
+"ultra"| ~80% – ~85%+
 
-### Code Comparison
+Code Comparison
 
-#### 1. Raw Source Code (~140 tokens)
-```python
+1. Raw Source Code (~140 tokens)
+
 import os
 import json
 import logging
@@ -92,11 +52,11 @@ class AuthService:
             logger.warning("Token rejected: invalid length")
             return None
         return UserProfile(user_id="u123", email="user@example.com")
-```
 
-#### 2. Lite Mode (~98 tokens, **~30% Saved**)
-*Removes docstrings, legal headers, normalizes whitespace. ~100% of function bodies and code logic preserved.*
-```python
+2. Lite Mode (~98 tokens, ~30% Saved)
+
+Removes docstrings, legal headers, normalizes whitespace. ~100% of function bodies and code logic preserved.
+
 import os
 import json
 import logging
@@ -122,11 +82,11 @@ class AuthService:
       logger.warning("Token rejected: invalid length")
       return None
     return UserProfile(user_id="u123", email="user@example.com")
-```
 
-#### 3. Medium Mode (~78 tokens, **~44% Saved**)
-*Compresses keywords (`def` &rarr; `fn`, `return` &rarr; `ret`), strips noisy logging/debug calls, condenses comments.*
-```python
+3. Medium Mode (~78 tokens, ~44% Saved)
+
+Compresses keywords ("def" → "fn", "return" → "ret"), strips noisy logging/debug calls, condenses comments.
+
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -144,11 +104,11 @@ class AuthService:
     if not token or len(token) < 16:
       ret None
     ret UserProfile(user_id="u123", email="user@example.com")
-```
 
-#### 4. Ultra Mode (~24 tokens, **~83% Saved**)
-*AST skeletonization. Retains all class structures, type hints, and function signatures while collapsing bodies to `pass`.*
-```python
+4. Ultra Mode (~24 tokens, ~83% Saved)
+
+AST skeletonization. Retains all class structures, type hints, and function signatures while collapsing bodies to "pass".
+
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -162,16 +122,50 @@ class AuthService:
     pass
   fn validate_token(self, token: str) -> Optional[UserProfile]:
     pass
-```
 
 ---
 
-## Command Reference
+Supported Languages
 
-### `cavecode read`
-Reads file(s) or directories on the fly with AST compression and outputs directly to stdout. **Leaves source files ~100% untouched.**
+CaveCode supports 9 programming languages with dedicated AST parsers and syntax transformers:
 
-```bash
+- Python (".py")
+- JavaScript (".js", ".jsx", ".mjs", ".cjs")
+- TypeScript (".ts", ".tsx")
+- Rust (".rs")
+- Go (".go")
+- Java (".java")
+- C++ (".cpp", ".cc", ".cxx", ".hpp")
+- C# (".cs")
+- C (".c", ".h")
+
+---
+
+Installation
+
+CaveCode is installed directly from the Git repository (it is not published to PyPI):
+
+# Install directly via pip
+pip install git+https://github.com/cavecode/cavecode.git
+
+Or clone and install in editable development mode:
+
+git clone https://github.com/cavecode/cavecode.git
+cd cavecode
+pip install -e .
+
+Verify installation:
+
+cavecode version
+
+---
+
+Command Reference
+
+"cavecode read"
+
+Reads file(s) or directories on the fly with AST compression and outputs directly to stdout. Leaves source files ~100% untouched.
+
 # Read a single file in ultra mode (default)
 cavecode read src/service.py
 
@@ -183,20 +177,18 @@ cavecode read src/service.py -n -l 10:45
 
 # Read an entire directory
 cavecode read src/ -m ultra
-```
 
-### `cavecode view` / `cavecode cat`
-Convenience aliases for `cavecode read`:
+"cavecode view" / "cavecode cat"
 
-```bash
+Convenience aliases for "cavecode read":
+
 cavecode cat app/main.ts -m medium
 cavecode view backend/service.go
-```
 
-### `cavecode compress`
-Compresses code files into companion `.cave.<ext>` files on disk. Original source files remain untouched.
+"cavecode compress"
 
-```bash
+Compresses code files into companion ".cave.<ext>" files on disk. Original source files remain untouched.
+
 # Compress a single file to <file>.cave.<ext>
 cavecode compress src/main.py
 
@@ -205,77 +197,72 @@ cavecode compress src/ -m ultra
 
 # Custom output destination for a single file
 cavecode compress src/main.py -o /tmp/main.compressed.py
-```
 
-### `cavecode revert`
-Removes generated `.cave` files across a file or directory tree:
+"cavecode revert"
 
-```bash
+Removes generated ".cave" files across a file or directory tree:
+
 cavecode revert .
-```
 
-### `cavecode estimate`
+"cavecode estimate"
+
 Calculates and displays approximate token counts and savings without modifying or creating files:
 
-```bash
 # Analyze a single file
 cavecode estimate src/main.py -m ultra
 
 # Analyze an entire codebase
 cavecode estimate src/
-```
 
-### `cavecode stats`
-Convenience alias for `cavecode estimate`:
+"cavecode stats"
 
-```bash
+Convenience alias for "cavecode estimate":
+
 cavecode stats src/ -m lite
-```
 
-### `cavecode verify`
+"cavecode verify"
+
 Verifies that target source files have not been modified:
 
-```bash
 cavecode verify src/
-```
 
-### `cavecode init`
-Creates a default `.cavecode.yaml` configuration file to configure custom inclusion patterns, exclusion lists, and compression modes:
+"cavecode init"
 
-```bash
+Creates a default ".cavecode.yaml" configuration file to configure custom inclusion patterns, exclusion lists, and compression modes:
+
 cavecode init .
-```
 
-### `cavecode version`
+"cavecode version"
+
 Displays the current CaveCode version:
 
-```bash
 cavecode version
-```
 
 ---
 
-## Agent Documentation (`AGENT.md`)
+Agent Documentation ("AGENT.md")
 
-Repositories using CaveCode include an [`AGENT.md`](AGENT.md) file at their root. This file serves as documentation for AI coding agents (such as Claude Code, Cursor, Copilot, Codex, Gemini, etc.), informing the agent of how to use CaveCode effectively.
+Repositories using CaveCode include an ""AGENT.md"" (AGENT.md) file at their root. This file serves as documentation for AI coding agents (such as Claude Code, Cursor, Copilot, Codex, Gemini, etc.), informing the agent of how to use CaveCode effectively.
 
-### Replacing Native Read Commands to Save Input Tokens
-When an AI agent explores, searches, or reads files across a project, reading verbose raw source code quickly saturates its context window. `AGENT.md` guides the agent to use `cavecode read` as a drop-in replacement for its native file-reading tool or command:
+Replacing Native Read Commands to Save Input Tokens
 
-```bash
+When an AI agent explores, searches, or reads files across a project, reading verbose raw source code quickly saturates its context window. "AGENT.md" guides the agent to use "cavecode read" as a drop-in replacement for its native file-reading tool or command:
+
 cavecode read path/to/file.py -m ultra    # Skeletons & signatures (~80% – ~85%+ token savings)
 cavecode read path/to/file.py -m lite     # Full logic & bodies intact (~25% – ~30% token savings)
-```
 
 By reading compressed representations directly from stdout, the agent consumes significantly fewer input tokens and experiences lower response latency.
 
-### Not Mandatory
-Using `cavecode read` is **NOT AT ALL MANDATORY**. If an agent only needs to inspect a tiny configuration file, read a small snippet, or requires exact byte-for-byte line matching to generate a diff or patch, it can continue reading raw files using its native tools at any time.
+Not Mandatory
 
-### Compression Modes for Agents
-- **`lite` (~25% – ~30% savings)**: ~100% of function bodies and algorithms are preserved. Ideal when the agent needs to analyze or debug implementation details.
-- **`medium` (~35% – ~50% savings)**: ~100% of function bodies preserved with compact keyword replacements (`fn`, `ret`, `pub`, `priv`) and stripped debug logs. Ideal for navigating multiple interdependent files.
-- **`ultra` (~80% – ~85%+ savings)**: Collapses function bodies to structural signatures (`pass` / `{ ... }`). Ideal for high-level repository mapping and finding API interfaces.
+Using "cavecode read" is NOT AT ALL MANDATORY. If an agent only needs to inspect a tiny configuration file, read a small snippet, or requires exact byte-for-byte line matching to generate a diff or patch, it can continue reading raw files using its native tools at any time.
 
-### Preserving Raw Files
-Agents write all edits directly to the original raw source files. The generated `.cave` files (if created on disk with `cavecode compress`) are strictly read-only references and should never be edited or committed.
+Compression Modes for Agents
+
+- "lite" (~25% – ~30% savings): ~100% of function bodies and algorithms are preserved. Ideal when the agent needs to analyze or debug implementation details.
+- "medium" (~35% – ~50% savings): ~100% of function bodies preserved with compact keyword replacements ("fn", "ret", "pub", "priv") and stripped debug logs. Ideal for navigating multiple interdependent files.
+- "ultra" (~80% – ~85%+ savings): Collapses function bodies to structural signatures ("pass" / "{ ... }"). Ideal for high-level repository mapping and finding API interfaces.
+
+Preserving Raw Files
+
+Agents write all edits directly to the original raw source files. The generated ".cave" files (if created on disk with "cavecode compress") are strictly read-only references and should never be edited or committed.
