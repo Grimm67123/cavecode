@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+cavecode.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# CaveCode output bundles
+cavecode-bundle.*
+bundle.*
+*.xml
+*.tokens.json
+*.compressed.*
+
+# CaveCode companion files
+*.cave.*
+*.cave
+
+# Local archive and scratch (do not upload)
+do_not_upload/
+do not upload/
+_do_not_upload/
+scratch/
