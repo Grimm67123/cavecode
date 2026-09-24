@@ -4,7 +4,7 @@
 >
 > LLMs and AI coding agents consume massive amounts of context tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode is an AST-aware source-code compressor that strips unnecessary token overhead before passing code to AI agents. It reduces input token usage by up to **~80%+** while preserving critical structural, syntactic, and semantic information across three configurable compression tiers.
 
-- 🌐 **[Web Playground](index.html)**: Try compression modes directly in your browser.
+- 🌐 **[Web Playground](https://grimm67123.github.io/cavecode/)**: Try compression modes directly in your browser.
 - 🤖 **Agent Protocol**: Includes an [AGENT.md](AGENT.md) documentation file for AI coding agents.
 
 ---
