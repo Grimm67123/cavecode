@@ -52,13 +52,13 @@ class AuthService:
         if not token or len(token) < 16:
             logger.warning("Token rejected: invalid length")
             return None
-        return UserProfile(user_id="u123", email="user@example.com")
+        return UserProfile(user_id="u123", email="user@example.com")```
 
 lite — ~30% saved
 
 Removes docstrings, legal headers, normalizes whitespace. ~100% of function bodies and code logic preserved.
 
-import os
+```import os
 import json
 import logging
 from typing import List, Optional
@@ -82,13 +82,13 @@ class AuthService:
     if not token or len(token) < 16:
       logger.warning("Token rejected: invalid length")
       return None
-    return UserProfile(user_id="u123", email="user@example.com")
+    return UserProfile(user_id="u123", email="user@example.com")```
 
 medium — ~44% saved
 
 Compresses keywords (def → fn, return → ret), strips noisy logging/debug calls, condenses comments.
 
-from typing import List, Optional
+```from typing import List, Optional
 from pydantic import BaseModel
 
 class UserProfile(BaseModel):
@@ -104,13 +104,13 @@ class AuthService:
   fn validate_token(self, token: str) -> Optional[UserProfile]:
     if not token or len(token) < 16:
       ret None
-    ret UserProfile(user_id="u123", email="user@example.com")
+    ret UserProfile(user_id="u123", email="user@example.com")```
 
 ultra — ~83% saved
 
 AST skeletonization. Retains all class structures, type hints, and function signatures while collapsing bodies to pass.
 
-from typing import List, Optional
+```from typing import List, Optional
 from pydantic import BaseModel
 
 class UserProfile(BaseModel):
@@ -122,7 +122,7 @@ class AuthService:
   fn __init__(self, secret_key: str, expiration_secs: int = 3600):
     pass
   fn validate_token(self, token: str) -> Optional[UserProfile]:
-    pass
+    pass```
 
 
 ---
