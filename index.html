@@ -175,9 +175,9 @@
     <div class="grid">
       <div class="panel">
         <div class="panel-header">
-          <span>Raw Source Code</span>
+          <span id="rawMeta">~0 tokens</span>
         </div>
-        <textarea id="inputCode" placeholder="Paste source code here (1000 words limit)..." oninput="processCode()"></textarea>
+        <textarea id="inputCode" placeholder="Paste source code here..." oninput="processCode()"></textarea>
       </div>
 
       <div class="panel">
@@ -214,9 +214,8 @@
   </div>
 
   <script>
-    const WORD_LIMIT = 1000;
     let currentMode = 'ultra';
-
+ 
     function setMode(mode) {
       currentMode = mode;
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -224,10 +223,6 @@
       if (btn) btn.classList.add('active');
       document.getElementById('outputTitle').innerText = 'Compressed (' + mode.charAt(0).toUpperCase() + mode.slice(1) + ')';
       processCode();
-    }
-
-    function countWords(str) {
-      return str.trim().split(/\s+/).filter(Boolean).length;
     }
 
     function estimateTokens(text) {
@@ -379,16 +374,6 @@
 
     function processCode() {
       let input = document.getElementById('inputCode').value;
-      let words = countWords(input);
-
-      if (words > WORD_LIMIT) {
-        const wordsArr = input.trim().split(/\s+/);
-        input = wordsArr.slice(0, WORD_LIMIT).join(' ');
-        document.getElementById('inputCode').value = input;
-        words = WORD_LIMIT;
-      }
-
-      document.getElementById('rawMeta').innerText = `${words} / ${WORD_LIMIT} words`;
 
       let compressed = '';
       if (input.trim()) {
@@ -407,6 +392,7 @@
       const savedTok = Math.max(0, rawTok - compTok);
       const pct = rawTok > 0 ? ((savedTok / rawTok) * 100).toFixed(1) : 0;
 
+      document.getElementById('rawMeta').innerText = '~' + rawTok.toLocaleString() + ' tokens';
       document.getElementById('statRawTokens').innerText = '~' + rawTok.toLocaleString();
       document.getElementById('statCompTokens').innerText = '~' + compTok.toLocaleString();
       document.getElementById('statSavedTokens').innerText = '~' + savedTok.toLocaleString();
