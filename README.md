@@ -1,30 +1,36 @@
+🪨 CaveCode ⚡
 
-# 🪨 CaveCode ⚡
+> why input many code when few code do trick
 
-> ***why input many code when few code do trick***
 
-LLMs and AI coding agents consume massive amounts of context tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode compresses source code before passing it to AI agents, stripping unnecessary token overhead while preserving critical information. It reduces input token usage by ~25-80%+ across three configurable compression tiers. 
 
-- 🌐 **[Web Playground](https://grimm67123.github.io/cavecode/)**: Try compression modes directly in your browser.
-- 🤖 **Agent Protocol**: Includes an [AGENT.md](AGENT.md) documentation file for AI coding agents.
+LLMs and AI coding agents consume massive amounts of context tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode compresses source code before passing it to AI agents, stripping unnecessary token overhead while preserving critical information. It reduces input token usage by ~25–80%+ across three configurable compression tiers.
 
-> **Compressed output is an information representation for AI context, not executable source code.** Agents continue to read and edit the original source files.
+🌐 Web Playground: Try compression modes directly in your browser.
+
+🤖 Agent Protocol: Includes an AGENT.md documentation file for AI coding agents.
+
+
+> Compressed output is an information representation for AI context, not executable source code. Agents continue to read and edit the original source files.
+
+
+
 
 ---
 
-## Compression Modes
+Compression Modes
 
-| Mode | Token Savings | What it keeps |
-| :--- | :---: | :--- |
-| **`lite`** | **~25% – ~30%** | Full function bodies & code logic |
-| **`medium`** | **~35% – ~50%** | Function bodies with compressed syntax |
-| **`ultra`** | **~80% – ~85%+** | AST structure, signatures & types |
+Mode	Token Savings	What it keeps
 
-### Code Comparison
+lite	~25% – ~30%	Full function bodies & code logic
+medium	~35% – ~50%	Function bodies with compressed syntax
+ultra	~80% – ~85%+	AST structure, signatures & types
 
-#### Raw Source Code
 
-```python
+Code Comparison
+
+Raw Source Code
+
 import os
 import json
 import logging
@@ -52,13 +58,13 @@ class AuthService:
         if not token or len(token) < 16:
             logger.warning("Token rejected: invalid length")
             return None
-        return UserProfile(user_id="u123", email="user@example.com")```
+        return UserProfile(user_id="u123", email="user@example.com")
 
 lite — ~30% saved
 
 Removes docstrings, legal headers, normalizes whitespace. ~100% of function bodies and code logic preserved.
 
-```import os
+import os
 import json
 import logging
 from typing import List, Optional
@@ -82,13 +88,13 @@ class AuthService:
     if not token or len(token) < 16:
       logger.warning("Token rejected: invalid length")
       return None
-    return UserProfile(user_id="u123", email="user@example.com")```
+    return UserProfile(user_id="u123", email="user@example.com")
 
 medium — ~44% saved
 
 Compresses keywords (def → fn, return → ret), strips noisy logging/debug calls, condenses comments.
 
-```from typing import List, Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 class UserProfile(BaseModel):
@@ -104,13 +110,13 @@ class AuthService:
   fn validate_token(self, token: str) -> Optional[UserProfile]:
     if not token or len(token) < 16:
       ret None
-    ret UserProfile(user_id="u123", email="user@example.com")```
+    ret UserProfile(user_id="u123", email="user@example.com")
 
 ultra — ~83% saved
 
 AST skeletonization. Retains all class structures, type hints, and function signatures while collapsing bodies to pass.
 
-```from typing import List, Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 class UserProfile(BaseModel):
@@ -122,7 +128,7 @@ class AuthService:
   fn __init__(self, secret_key: str, expiration_secs: int = 3600):
     pass
   fn validate_token(self, token: str) -> Optional[UserProfile]:
-    pass```
+    pass
 
 
 ---
@@ -131,7 +137,6 @@ Installation
 
 CaveCode is installed directly from the Git repository (it is not published to PyPI):
 
-# Install directly via pip
 pip install git+https://github.com/cavecode/cavecode.git
 
 Or clone and install in editable development mode:
