@@ -48,7 +48,7 @@ cavecode version
 | **`lite`** | **~5% – ~10%** | Full function bodies & code logic |
 | **`medium`** | **~15% – ~20%** | Function bodies with compressed syntax |
 | **`ultra`** | **~80% – ~85%+** | AST structure, signatures & types |
-
+### RECOMMENDED MODE: ULTRA
 ---
 ## Supported Languages
 
