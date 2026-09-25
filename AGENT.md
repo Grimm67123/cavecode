@@ -1,114 +1,75 @@
 # CaveCode Agent Guide
 
-Technical reference and operating protocol for AI coding agents using `cavecode`.
+Operational guide and protocol for AI coding agents using `cavecode`.
 
 ---
 
-## Operating Protocol for AI Agents
+## 🎯 What CaveCode Is (and Isn't)
 
-To minimize context window usage, reduce token latency, and prevent token waste, agents follow this protocol:
-
-1. **Read compressed code on the fly via `cavecode read`**:
-   When exploring, searching, reading functions, or gathering codebase context, use `cavecode read` instead of reading raw files directly:
-   ```bash
-   cavecode read path/to/file.py -m ultra    # Signatures, types, classes (70-80%+ token savings)
-   cavecode read path/to/file.ts -m lite     # 100% full logic & body intact (20-30% token savings)
-   cavecode read src/ -m ultra               # Scan all files in a directory directly to stdout
-   ```
-   *`cavecode read` streams compressed code directly to stdout with zero disk modifications.*
-
-2. **Reading compressed code is optional**:
-   If you only need to inspect a tiny configuration file, read 5 lines, or need byte-for-byte exact lines for an immediate diff/patch, you can read the raw file directly with your standard read tool. Use `cavecode read` whenever reading large files, exploring architecture, or mapping dependencies.
-
-3. **Optional on-disk companion files (`cavecode compress`)**:
-   If you want persistent `.cave` companion files on disk across multiple commands or turns:
-   ```bash
-   cavecode compress . -m ultra      # Generate .cave companion files across directory
-   cavecode compress file.py -m lite # Generate single file.cave.py
-   ```
-   When finished, clean them up:
-   ```bash
-   cavecode revert .
-   ```
-
-4. **Never edit or execute `.cave.*` files**:
-   Compressed representations are strictly read-only reference artifacts. Compilers, linters, test runners, and debuggers run exclusively on original source files.
-
-5. **Apply all edits to original raw source files**:
-   When modifying code, fixing bugs, or adding features, apply edits directly to the original raw files (`<filename>.<ext>`).
+* **WHAT IT IS**: An **AST-aware Interface & Signature Extractor**. It extracts class definitions, method signatures, exports, and type annotations into a high-density outline, saving 70%–80%+ context tokens when mapping dependencies.
+* **WHAT IT IS NOT**: It is **not** a replacement for reading the raw files you are actively editing, nor is it a tool for generating code patches.
 
 ---
 
-## Compression Modes
+## 🧭 Operating Protocol for AI Agents
 
-Choose the compression tier using `--mode` or `-m` (default: `ultra`):
+Follow this simple rule of thumb:
 
-| Mode | Token Savings | Logic & Structure | Recommended Agent Use Case |
-| :--- | :--- | :--- | :--- |
-| **`lite`** | **20%–30%** | **100% of function bodies & logic preserved.** Telegraphic comments, signature inlining, import cleanup, 2-space indentation. | Deep debugging, inspecting complex algorithms, reviewing mathematical or business calculations. |
-| **`medium`** | **40%–60%** | **100% of function bodies & logic preserved.** Keyword density (`fn`, `ret`, `pub`, `priv`, `const`, `ro`, `any`, `bool`), debug log stripping, block inlining, telegraphic comments. | General code navigation, reading multiple related files, understanding component interactions. |
-| **`ultra`** | **70%–80%+** | **100% architectural and signature preservation.** Strips all comments, docstrings, and compresses function bodies to structural signatures (`{ ... }` / `pass`). | Large repo scanning, architectural discovery, API surface analysis, cross-module dependency mapping. |
+| Task | Tool to Use | Why |
+| :--- | :--- | :--- |
+| **Referencing dependencies / sibling modules** *(e.g. "What methods does `utils.js` export?", "What params does `PipelineStage` take?")* | `cavecode read <file> -m ultra` | Pulls clean API signatures in ~50 tokens instead of ~1,000 tokens. |
+| **Broad repo scanning / architecture discovery** *(e.g. "Which file defines class X?")* | `cavecode read <dir> -m ultra` | Quickly surveys the entire codebase layout with minimal context bloat. |
+| **Actively editing / patching a file** | **Native file tool** (`view_file`, raw read) | You need byte-for-byte exact line numbers and strings for diffs/patches. |
+| **Deep logic debugging / tracing calculations** | **Native file tool** (`view_file`, raw read) | Compressed code rewrites keywords and strips debug lines, which obscures logic. |
+| **HTML, CSS, JSON, YAML, Markdown** | **Native file tool** (`view_file`, raw read) | `cavecode` only parses ASTs for programming languages; markup is uncompressed. |
 
 ---
 
-## CLI Command Reference
+## ⚠️ Critical Agent Rules & Gotchas
 
-### `cavecode read` (Aliases: `cavecode view`, `cavecode cat`)
-Reads source file(s) or directory on the fly with AST compression, printed directly to stdout. **Zero disk modifications.**
+1. **NEVER use compressed text as a patch or diff target**:
+   `cavecode` rewrites keywords (`def` → `fn`, `return` → `ret`, `export` → `exp`, converts indents to 2 spaces). **None of these strings exist in the raw file.** Edits applied against compressed text will fail.
 
-```bash
-# Read a single file in ultra mode (default: 70-80%+ savings)
-cavecode read path/to/file.py
+2. **DO NOT trust line numbers from `-n` for file editing**:
+   `cavecode read -n` numbers the lines of the *compressed output stream*, NOT the original source file. Do not pass these line numbers to `replace_file_content`, `patch`, or `sed`.
 
-# Read a single file in lite mode (100% logic intact)
-cavecode read path/to/file.ts -m lite
+3. **Beware of string & type truncation in `-m ultra`**:
+   Long return types or string literals in signatures may be truncated with ellipses (e.g. `"AnalyticsPipeline"` → `"AnalyticsP..."`). If an exact symbol name or complex type signature is ambiguous, check the raw definition.
 
-# Read with line numbers
-cavecode read path/to/file.go -n
+4. **Never edit or commit `.cave.*` files**:
+   Compressed companion files generated by `cavecode compress` are strictly temporary read-only views. Always clean them up with `cavecode revert .` before completing tasks.
 
-# Read a specific line range
-cavecode read path/to/file.py -l 1:50 -n
+---
 
-# Read all files in a directory to stdout
-cavecode read ./src -m ultra
-```
+## ⚙️ Compression Modes
 
-### `cavecode compress` (Optional on-disk generation)
-Compresses a source file or an entire directory, creating `<name>.cave.<ext>` companion files alongside target files. Original files remain **100% untouched**.
+| Mode | Token Savings | Structure | When an Agent Should Use It |
+| :--- | :---: | :--- | :--- |
+| **`ultra`** *(Default)* | **~70%–90%** | **Signatures, types, classes, exports only.** Bodies collapsed to `pass` / `{ ... }`. | **Primary mode for agents.** Inspecting APIs of dependency files, understanding call contracts, mapping repository layout. |
+| **`lite`** | **~20%–30%** | Full function logic preserved, telegraphic comments, 2-space indentation. | Skimming an algorithm or data flow inside a dependency without needing exact syntax. |
+| **`medium`** | **~40%–60%** | Full logic preserved, keyword shorthand (`fn`, `ret`), debug logger stripping. | High-density skimming of dependencies. *(Caution: Logger stripping may leave empty blocks in Python).* |
 
-```bash
-# Generate .cave files across entire repository
-cavecode compress . -m ultra
+---
 
-# Generate .cave files for a directory in lite mode
-cavecode compress ./src -m lite
-
-# Compress a single file to a .cave companion file
-cavecode compress path/to/file.py -m ultra
-```
-
-### `cavecode revert`
-Removes generated `.cave` companion files from a file or directory, restoring a clean raw codebase state.
+## 🛠️ CLI Quick Reference
 
 ```bash
-# Clean up all .cave files in the project
+# 1. Inspect dependency API / interface (RECOMMENDED AGENT USAGE)
+cavecode read path/to/dependency.py -m ultra
+cavecode read path/to/service.ts -m ultra
+
+# 2. Survey an entire directory's exports & structure
+cavecode read src/ -m ultra
+
+# 3. Estimate potential token savings across a folder
+cavecode estimate ./src
+
+# 4. Optional: create on-disk .cave files for multi-turn inspection
+cavecode compress ./src -m ultra
+
+# 5. Clean up all generated .cave files
 cavecode revert .
 
-# Clean up .cave files in a specific folder
-cavecode revert ./src
-```
-
-### `cavecode estimate`
-Calculates approximate token usage and potential savings without writing any files to disk.
-
-```bash
-cavecode estimate path/to/file.rs -m ultra
-cavecode estimate ./src -m lite
-```
-
-### `cavecode verify`
-Performs SHA-256 cryptographic verification proving target source files have not been modified.
-
-```bash
+# 6. Verify source files were untouched
 cavecode verify .
 ```
