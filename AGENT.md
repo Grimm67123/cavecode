@@ -46,8 +46,8 @@ Choose the compression tier using `--mode` or `-m` (default: `ultra`):
 | Mode | Token Savings | Logic & Structure | Recommended Agent Use Case |
 | :--- | :---: | :--- | :--- |
 | **`ultra`** *(Default)* | **~80% – ~85%+** | **100% architectural and signature preservation.** Strips comments and docstrings; collapses function and method bodies to structural shells (`pass` / `{ ... }`). Keeps all class hierarchies, type annotations, and function definitions. | **Primary mode for agents.** Ideal for large repository scanning, architecture discovery, mapping dependencies, and checking API contracts/parameters of files you are not actively modifying. |
-| **`lite`** | **~25% – ~30%** | **100% of function bodies & logic preserved.** Removes docstrings and license blocks, normalizes indentation to 2 spaces, and condenses imports. | Skimming algorithms or internal data flow inside an external module when you need to understand how it works under the hood without burning full token overhead. |
-| **`medium`** | **~35% – ~50%** | **100% of function bodies preserved.** Uses compact keyword density (`fn`, `ret`, `pub`, `priv`, `const`), strips debug/info logging calls, and summarizes comments. | High-density reading across multiple interdependent files when you need a compact overview of logic. |
+| **`lite`** | **~5% – ~10%** | **100% of function bodies & logic preserved.** Removes docstrings and license blocks, normalizes indentation to 2 spaces, and condenses imports. | Skimming algorithms or internal data flow inside an external module when you need to understand how it works under the hood without burning full token overhead. |
+| **`medium`** | **~15% – ~20%** | **100% of function bodies preserved.** Uses compact keyword density (`fn`, `ret`, `pub`, `priv`, `const`), strips debug/info logging calls, and summarizes comments. | High-density reading across multiple interdependent files when you need a compact overview of logic. |
 
 ---
 
