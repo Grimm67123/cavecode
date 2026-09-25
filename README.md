@@ -101,7 +101,7 @@ class UserProfile(BaseModel):
 
 class AuthService:
   fn __init__(self, secret_key: str, expiration_secs: int = 3600):
-    self.secret_key = self.secret_key
+    self.secret_key = secret_key
     self.expiration_secs = expiration_secs
 
   fn validate_token(self, token: str) -> Optional[UserProfile]:
@@ -134,7 +134,13 @@ class AuthService:
 
 ## Installation
 
-CaveCode is installed directly from the Git repository (it is not published to PyPI):
+Install via pip:
+
+```bash
+pip install cavecode
+```
+
+Or install directly from Git:
 
 ```bash
 pip install git+https://github.com/cavecode/cavecode.git
@@ -179,10 +185,10 @@ CaveCode supports 9 programming languages with dedicated AST parsers and syntax 
 Reads file(s) or directories on the fly with AST compression and outputs directly to stdout. Leaves source files ~100% untouched.
 
 ```bash
-# Read a single file in ultra mode (default)
+# Read a single file in ultra mode (default: signatures & types)
 cavecode read src/service.py
 
-# Read in lite mode to keep all function implementations
+# Read in lite mode to keep function implementations
 cavecode read src/service.py -m lite
 
 # Read with line numbers and a specific line slice
@@ -272,28 +278,28 @@ cavecode version
 
 ## Agent Documentation (AGENT.md)
 
-Repositories using CaveCode include an `AGENT.md` file at their root. This file serves as documentation for AI coding agents (such as Claude Code, Cursor, Copilot, Codex, Gemini, etc.), informing the agent of how to use CaveCode effectively.
+Repositories using CaveCode include an `AGENT.md` file at their root. This file serves as documentation for AI coding agents (such as Claude Code, Cursor, Copilot, Codex, Gemini, etc.), informing the agent of how to use CaveCode safely and effectively.
 
-### Replacing Native Read Commands to Save Input Tokens
+### Reading External Dependencies Without Context Bloat
 
-When an AI agent explores, searches, or reads files across a project, reading verbose raw source code quickly saturates its context window. AGENT.md guides the agent to use `cavecode read` as a drop-in replacement for its native file-reading tool or command:
+When an AI agent explores a repository or needs to understand how to call functions across sibling files, reading verbose raw source code quickly saturates its context window. `AGENT.md` guides the agent to use `cavecode read -m ultra` to extract clean interfaces, types, and API signatures from dependencies:
 
 ```bash
-cavecode read path/to/file.py -m ultra    # Skeletons & signatures (~80% – ~85%+ token savings)
-cavecode read path/to/file.py -m lite     # Full logic & bodies intact (~25% – ~30% token savings)
+cavecode read path/to/dependency.py -m ultra    # Skeletons & signatures (~80% – ~85%+ token savings)
+cavecode read src/ -m ultra                    # High-speed architecture & interface mapping
 ```
 
-By reading compressed representations directly from stdout, the agent consumes significantly fewer input tokens and experiences lower response latency.
+By reading compressed signatures from stdout, the agent consumes significantly fewer input tokens and keeps its context clean for the task at hand.
 
-### Not Mandatory
+### When to Use Raw File Reads
 
-Using `cavecode read` is **NOT AT ALL MANDATORY**. If an agent only needs to inspect a tiny configuration file, read a small snippet, or requires exact byte-for-byte line matching to generate a diff or patch, it can continue reading raw files using its native tools at any time.
+Using `cavecode` is strictly intended for understanding interfaces and dependencies. When an agent is **actively writing, patching, or debugging code in a target file**, it continues to read the original raw source files using its native tools to ensure byte-exact diffs and accurate line numbers.
 
 ### Compression Modes for Agents
 
-- **lite (~25% – ~30% savings):** ~100% of function bodies and algorithms are preserved. Ideal when the agent needs to analyze or debug implementation details.
-- **medium (~35% – ~50% savings):** ~100% of function bodies preserved with compact keyword replacements (`fn`, `ret`, `pub`, `priv`) and stripped debug logs. Ideal for navigating multiple interdependent files.
-- **ultra (~80% – ~85%+ savings):** Collapses function bodies to structural signatures (`pass` / `{ ... }`). Ideal for high-level repository mapping and finding API interfaces.
+- **ultra (~80% – ~85%+ savings):** **Primary mode for agents.** Collapses function bodies to structural signatures (`pass` / `{ ... }`). Ideal for high-level repository mapping and referencing API interfaces of dependency files.
+- **lite (~25% – ~30% savings):** Preserves full function bodies and algorithms with normalized whitespace and removed docstrings. Useful for skimming logic in an external file.
+- **medium (~35% – ~50% savings):** Preserves function bodies with compact keyword replacements (`fn`, `ret`, `pub`, `priv`) and stripped debug logs.
 
 ### Preserving Raw Files
 
