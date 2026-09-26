@@ -65,7 +65,7 @@ if __name__ == '__main__':
 def test_java_compressor():
     compressor = get_compressor("java")
     code = '''
-// Important Java license comment
+// Important Java header comment
 package com.example.service;
 
 import java.util.List;
@@ -116,7 +116,7 @@ public class UserService {
     compressed = compressor.compress(code)
 
     # 1. Comments preserved
-    assert "Important Java license comment" in compressed
+    assert "Important Java header comment" in compressed
     assert "Keep user state" in compressed
     assert "algorithm logic" in compressed
 
@@ -350,7 +350,7 @@ export default function Counter() {
 def test_modes_lite_medium_ultra():
     comp = get_compressor("python")
     code = """
-# License comment
+# Top comment
 # Detailed comment
 def heavy_func(a: int, b: int) -> int:
     \"\"\"Important docstring\"\"\"

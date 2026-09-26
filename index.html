@@ -34,7 +34,6 @@
     }
     .logo { font-size: 1.3rem; font-weight: 800; color: var(--text); }
     .logo span { color: var(--accent); }
-    .tagline { font-size: 0.8rem; color: var(--muted); font-style: italic; }
     .controls {
       display: flex;
       justify-content: space-between;
@@ -74,17 +73,6 @@
       outline: none;
       cursor: pointer;
     }
-    .samples { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-    .sample-btn {
-      background: #1e293b;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .sample-btn:hover { color: var(--text); border-color: var(--accent); }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
     .panel {
@@ -157,17 +145,6 @@
       text-transform: uppercase;
       margin-top: 4px;
     }
-    .note {
-      font-size: 0.78rem;
-      color: var(--muted);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
-    .note code { color: var(--accent); font-family: monospace; }
     footer {
       margin-top: 20px;
       padding-top: 16px;
@@ -182,7 +159,6 @@
   <div class="container">
     <header>
       <div class="logo">Cave<span>Code</span></div>
-      <div class="tagline">why input many code when few code do trick</div>
     </header>
 
     <div class="controls">
@@ -205,17 +181,6 @@
       </select>
     </div>
 
-    <div class="samples" id="sampleBar">
-      <button class="sample-btn" onclick="loadSample('python')">py</button>
-      <button class="sample-btn" onclick="loadSample('javascript')">js</button>
-      <button class="sample-btn" onclick="loadSample('typescript')">ts</button>
-      <button class="sample-btn" onclick="loadSample('go')">go</button>
-      <button class="sample-btn" onclick="loadSample('rust')">rs</button>
-      <button class="sample-btn" onclick="loadSample('java')">java</button>
-      <button class="sample-btn" onclick="loadSample('cpp')">cpp</button>
-      <button class="sample-btn" onclick="loadSample('csharp')">cs</button>
-      <button class="sample-btn" onclick="loadSample('c')">c</button>
-    </div>
 
     <div class="grid">
       <div class="panel">
@@ -254,11 +219,6 @@
       </div>
     </div>
 
-    <div class="note">
-      Web port of the <code>cavecode</code> Python CLI v1.0.0 engine (same mode semantics: <code>ultra</code> stubs bodies to <code>pass</code> / <code>{ ... }</code>, <code>lite</code> keeps bodies, <code>medium</code> keeps bodies + strips debug logging).
-      Output is a reference representation — edit original files, same as <code>cavecode read</code>. Token counts use the CLI fallback (<code>len/3.6</code>).
-      Select a language or leave on Auto-detect.
-    </div>
 
     <footer>
       Licensed under GNU Affero General Public License v3
@@ -267,14 +227,6 @@
 
 <script>
 'use strict';
-/* =====================================================================
-   CaveCode Web Engine — faithful JS port of Python CLI v1.0.0
-   Ports: base.py, ast_pruner.py (heuristic, string-aware), python.py,
-   javascript.py, go.py, rust.py, java.py, cpp.py, csharp.py,
-   tokenizer.py (fallback), config.py (language map).
-   Order of operations matches CLI: prune/ultra-stub -> comments ->
-   strings/logging -> per-lang rewrites -> indent normalize.
-   ===================================================================== */
 
 let currentMode = 'ultra';
 let currentLangOverride = 'auto';
@@ -861,18 +813,6 @@ function estimateTokensFallback(text) {
   return Math.max(1, Math.round(text.length / 3.6));
 }
 
-/* ---------- samples ---------- */
-const SAMPLES = {
-python: '"""User service module."""\nimport os\nimport logging\nfrom typing import Optional\n\nlogger = logging.getLogger(__name__)\n\nclass UserService:\n    """Service for managing users."""\n\n    def __init__(self, db_url: str, timeout: int = 30):\n        self.db_url = db_url\n        self.timeout = timeout\n\n    def get_user(self, user_id: int) -> Optional[str]:\n        """Fetch a user by ID."""\n        # Check cache first\n        if user_id in self._cache:\n            logger.info("hit")\n            return self._cache[user_id]\n        return None\n',
-javascript: 'import { EventEmitter } from "events";\nimport axios from "axios";\n\n// User API client\n export class UserClient extends EventEmitter {\n  constructor(baseUrl, timeout = 5000) {\n    super();\n    this.baseUrl = baseUrl;\n  }\n  async getUser(userId) {\n    console.log(`Fetching ${userId}`);\n    if (this.cache.has(userId)) {\n      console.info("hit");\n      return this.cache.get(userId);\n    }\n    const res = await axios.get(`${this.baseUrl}/users/${userId}`);\n    return res.data;\n  }\n}\n',
-typescript: 'import { Observable, of } from "rxjs";\n\nexport interface User {\n  id: number;\n  name: string;\n  isActive: boolean;\n}\n\nexport class UserService {\n  private cache = new Map<number, User>();\n  constructor(private baseUrl: string) {}\n  async getUser(userId: number): Promise<User | null> {\n    console.log(userId);\n    if (this.cache.has(userId)) return this.cache.get(userId)!;\n    return null;\n  }\n}\n',
-go: 'package userservice\n\nimport (\n  "errors"\n  "log"\n)\n\n// User represents a user.\ntype User struct {\n  ID int64 `json:"id"`\n  Name string `json:"name"`\n}\n\nfunc New(dbURL string) *Service {\n  return &Service{DBURL: dbURL}\n}\n\nfunc (s *Service) GetUser(id int64) (*User, error) {\n  if u, ok := s.cache[id]; ok {\n    log.Printf("hit %d", id)\n    return u, nil\n  }\n  if id <= 0 {\n    return nil, errors.New("invalid")\n  }\n  return nil, nil\n}\n',
-rust: 'use std::collections::HashMap;\n\n/// Service for managing users.\n pub struct UserService {\n  db_url: String,\n  cache: HashMap<u64, String>,\n}\n\nimpl UserService {\n  /// Create a new service.\n  pub fn new(db_url: String) -> Self {\n    Self { db_url, cache: HashMap::new() }\n  }\n  pub fn get_user(&mut self, user_id: u64) -> Option<&String> {\n    if self.cache.contains_key(&user_id) {\n      return self.cache.get(&user_id);\n    }\n    None\n  }\n}\n',
-java: 'package com.example.users;\n\nimport java.util.*;\n\n/** Service for managing users. */\npublic class UserService {\n  private final String dbUrl;\n  public UserService(String dbUrl) {\n    this.dbUrl = dbUrl;\n  }\n  public String getUser(int userId) {\n    if (userId <= 0) {\n      return null;\n    }\n    return "Alice";\n  }\n}\n',
-cpp: '#include <string>\n#include <vector>\n#include <iostream>\n\n// Service for managing users.\nclass UserService {\npublic:\n  UserService(const std::string& db_url) : db_url_(db_url) {}\n  std::string getUser(int user_id) {\n    if (user_id <= 0) {\n      return "";\n    }\n    std::cout << user_id << std::endl;\n    return "Alice";\n  }\nprivate:\n  std::string db_url_;\n};\n',
-csharp: 'using System;\nusing System.Collections.Generic;\n\nnamespace Example.Users\n{\n  /// Service for managing users.\n  public class UserService\n  {\n    private readonly string _dbUrl;\n    public UserService(string dbUrl) { _dbUrl = dbUrl; }\n    public string GetUser(int userId)\n    {\n      if (userId <= 0) return null;\n      return "Alice";\n    }\n  }\n}\n',
-c: '#include <stdio.h>\n#include <stdbool.h>\n\n// User record.\ntypedef struct {\n  int id;\n  char name[64];\n  bool is_active;\n} User;\n\nUser* service_get_user(int user_id) {\n  if (user_id <= 0) {\n    return NULL;\n  }\n  printf("fetch %d\\n", user_id);\n  return NULL;\n}\n'
-};
 
 /* ---------- UI ---------- */
 function setMode(mode) {
@@ -885,12 +825,6 @@ function setMode(mode) {
 }
 function onLangChange() {
   currentLangOverride = document.getElementById('langSelect').value;
-  processCode();
-}
-function loadSample(lang) {
-  document.getElementById('langSelect').value = lang;
-  currentLangOverride = lang;
-  document.getElementById('inputCode').value = SAMPLES[lang] || '';
   processCode();
 }
 function processCode() {

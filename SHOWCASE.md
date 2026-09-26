@@ -67,7 +67,6 @@ fn batch_totals(orders, tax_rate=0.08):
 <summary>medium <code>order_service.py</code></summary>
 
 ```python
-# [License: copying of this file]
 """Order processing subsystem example e-commerce platform."""
 import os, logging, datetime
 from dataclasses import dataclass, field
@@ -240,7 +239,6 @@ fn batch_totals(orders, tax_rate=0.08):
 <summary>lite <code>order_service.py</code></summary>
 
 ```python
-# [License: copying of this file]
 """Order processing subsystem example e-commerce platform."""
 import os, logging, datetime
 from dataclasses import dataclass, field
@@ -415,11 +413,7 @@ fn batch_totals(orders, tax_rate=0.08):
 <summary>raw <code>order_service.py</code></summary>
 
 ```python
-# Copyright (c) 2024 CaveCode Authors. All rights reserved.
-# Licensed under the GNU Affero General Public License v3.
 # This file is part of the example order processing subsystem.
-# Unauthorized copying of this file, via any medium, is strictly prohibited.
-# Proprietary and confidential. See LICENSE for full license text.
 """Order processing subsystem for the example e-commerce platform.
 
 This module implements order validation, pricing, inventory reservation,
@@ -673,7 +667,6 @@ exp fn isValidCoupon(code) { ... }
 
 ```javascript
 import { EventEmitter } from 'events'; import axios from "axios"; import crypto from "crypto";
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 exp class OrderValidator extends EventEmitter {
   /* Creates new OrderValidator. */
@@ -797,7 +790,6 @@ exp fn isValidCoupon(code) {
 
 ```javascript
 import { EventEmitter } from 'events'; import axios from "axios"; import crypto from "crypto";
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 exp class OrderValidator extends EventEmitter {
   /* Creates new OrderValidator. */
@@ -961,9 +953,6 @@ import { EventEmitter } from "events";
 import axios from "axios";
 import crypto from "crypto";
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 /**
  * Order processing subsystem for the example e-commerce platform.
@@ -1176,7 +1165,6 @@ exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], ta
 
 ```typescript
 import { Observable, of } from 'rxjs'
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 // Domain types order management workflows
 exp interface OrderItem  { sku: str; quantity: num; unitPrice: num; discountPct: num }
@@ -1298,7 +1286,6 @@ exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], ta
 
 ```typescript
 import { Observable, of } from 'rxjs'
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 // Domain types order management workflows
 exp interface OrderItem  { sku: str; quantity: num; unitPrice: num; discountPct: num }
@@ -1462,9 +1449,6 @@ exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], ta
 ```typescript
 import { Observable, of } from "rxjs";
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 /**
  * Order processing subsystem for the example e-commerce platform.
@@ -1695,7 +1679,6 @@ fn contains(s, sub string) bool { ... }
 ```go
 package orderservice
 import ("errors" "fmt" "log" "time")
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // OrderItem represents single line item within customer order.
 type OrderItem struct {
   SKU         string  `json:"sku"`
@@ -1814,7 +1797,6 @@ fn contains(s, sub string) bool {
 ```go
 package orderservice
 import ("errors" "fmt" "log" "time")
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // OrderItem represents single line item within customer order.
 type OrderItem struct {
   SKU         string  `json:"sku"`
@@ -1989,9 +1971,6 @@ import (
 	"time"
 )
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 // OrderItem represents a single line item within a customer order.
 type OrderItem struct {
@@ -2203,7 +2182,6 @@ impl OrderValidator {
 
 ```rust
 use std::collections::HashMap;
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 #[derive(Debug,Clone)]
 pub struct OrderItem {
@@ -2331,7 +2309,6 @@ impl OrderValidator {
 
 ```rust
 use std::collections::HashMap;
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 #[derive(Debug,Clone)]
 pub struct OrderItem {
@@ -2490,9 +2467,6 @@ impl OrderValidator {
 ```rust
 use std::collections::HashMap;
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 // Represents a single line item within a customer order.
 #[derive(Debug, Clone)]
@@ -2689,7 +2663,6 @@ pub class OrderValidator {
 ```java
 package com.example.orders
 import java.util.*; import java.util.logging.Logger
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 pub class OrderValidator {
   priv const Logger logger = Logger.getLogger(OrderValidator.class.getName())
@@ -2795,7 +2768,6 @@ pub class OrderValidator {
 ```java
 package com.example.orders
 import java.util.*; import java.util.logging.Logger
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 /* Order processing subsystem example e-commerce platform. */
 pub class OrderValidator {
   priv const Logger logger = Logger.getLogger(OrderValidator.class.getName())
@@ -2940,9 +2912,6 @@ package com.example.orders;
 import java.util.*;
 import java.util.logging.Logger;
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 /**
  * Order processing subsystem for the example e-commerce platform.
@@ -3137,7 +3106,6 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) { ... }
 
 ```cpp
 #include <string, vector, unordered_map, iostream, cstdint, cmath>
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 OrderItem {
   string sku;
@@ -3254,7 +3222,6 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) {
 
 ```cpp
 #include <string, vector, unordered_map, iostream, cstdint, cmath>
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 OrderItem {
   string sku;
@@ -3414,9 +3381,6 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) {
 #include <cstdint>
 #include <cmath>
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 // Represents a single line item within a customer order.
 struct OrderItem {
@@ -3634,7 +3598,6 @@ namespace Example.Orders
 
 ```csharp
 using System; System.Collections.Generic; System.Linq; System.Threading.Tasks; Microsoft.Extensions.Logging
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 namespace Example.Orders
 {
 // Represents single line item within customer order.
@@ -3767,7 +3730,6 @@ namespace Example.Orders
 
 ```csharp
 using System; System.Collections.Generic; System.Linq; System.Threading.Tasks; Microsoft.Extensions.Logging
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 namespace Example.Orders
 {
 // Represents single line item within customer order.
@@ -3927,9 +3889,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 namespace Example.Orders
 {
@@ -4151,7 +4110,6 @@ double batch_grand_total(const double* subs, const double* taxes, int n) { ... }
 
 ```c
 #include <stdio.h, stdlib.h, string.h, stdbool.h>
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 typedef struct {
   char sku[64];
@@ -4273,7 +4231,6 @@ double batch_grand_total(const double* subs, const double* taxes, int n) {
 
 ```c
 #include <stdio.h, stdlib.h, string.h, stdbool.h>
-// [License: Copyright (c) 2024 CaveCode Authors. All rights reserved.]
 // Represents single line item within customer order.
 typedef struct {
   char sku[64];
@@ -4432,9 +4389,6 @@ double batch_grand_total(const double* subs, const double* taxes, int n) {
 #include <string.h>
 #include <stdbool.h>
 
-// Copyright (c) 2024 CaveCode Authors. All rights reserved.
-// Licensed under the GNU Affero General Public License v3.
-// Example order processing subsystem. Unauthorized copying is prohibited.
 
 // Represents a single line item within a customer order.
 typedef struct {
