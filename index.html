@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CaveCode</title>
+  <title>CaveCode — Web Playground</title>
   <style>
     :root {
       --bg: #090d16;
@@ -32,12 +32,9 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
     }
-    .logo {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--text);
-    }
+    .logo { font-size: 1.3rem; font-weight: 800; color: var(--text); }
     .logo span { color: var(--accent); }
+    .tagline { font-size: 0.8rem; color: var(--muted); font-style: italic; }
     .controls {
       display: flex;
       justify-content: space-between;
@@ -65,18 +62,31 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .mode-btn.active {
-      background: var(--accent);
-      color: #030712;
+    .mode-btn.active { background: var(--accent); color: #030712; }
+    .lang-select {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+    .samples { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .sample-btn {
+      background: #1e293b;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
     }
-    @media (max-width: 800px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+    .sample-btn:hover { color: var(--text); border-color: var(--accent); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
     .panel {
       background: var(--card);
       border: 1px solid var(--border);
@@ -107,6 +117,7 @@
       resize: vertical;
       line-height: 1.45;
       outline: none;
+      white-space: pre;
     }
     textarea:focus { border-color: var(--accent); }
     .copy-btn {
@@ -125,9 +136,7 @@
       gap: 12px;
       margin: 16px 0;
     }
-    @media (max-width: 600px) {
-      .stats-bar { grid-template-columns: 1fr 1fr; }
-    }
+    @media (max-width: 600px) { .stats-bar { grid-template-columns: 1fr 1fr; } }
     .stat-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -148,6 +157,17 @@
       text-transform: uppercase;
       margin-top: 4px;
     }
+    .note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    .note code { color: var(--accent); font-family: monospace; }
     footer {
       margin-top: 20px;
       padding-top: 16px;
@@ -162,6 +182,7 @@
   <div class="container">
     <header>
       <div class="logo">Cave<span>Code</span></div>
+      <div class="tagline">why input many code when few code do trick</div>
     </header>
 
     <div class="controls">
@@ -170,12 +191,37 @@
         <button class="mode-btn" onclick="setMode('medium')" id="btn-medium">Medium</button>
         <button class="mode-btn active" onclick="setMode('ultra')" id="btn-ultra">Ultra</button>
       </div>
+      <select class="lang-select" id="langSelect" onchange="onLangChange()">
+        <option value="auto">Auto-detect</option>
+        <option value="python">Python (.py)</option>
+        <option value="javascript">JavaScript (.js)</option>
+        <option value="typescript">TypeScript (.ts)</option>
+        <option value="go">Go (.go)</option>
+        <option value="rust">Rust (.rs)</option>
+        <option value="java">Java (.java)</option>
+        <option value="cpp">C++ (.cpp)</option>
+        <option value="csharp">C# (.cs)</option>
+        <option value="c">C (.c)</option>
+      </select>
+    </div>
+
+    <div class="samples" id="sampleBar">
+      <button class="sample-btn" onclick="loadSample('python')">py</button>
+      <button class="sample-btn" onclick="loadSample('javascript')">js</button>
+      <button class="sample-btn" onclick="loadSample('typescript')">ts</button>
+      <button class="sample-btn" onclick="loadSample('go')">go</button>
+      <button class="sample-btn" onclick="loadSample('rust')">rs</button>
+      <button class="sample-btn" onclick="loadSample('java')">java</button>
+      <button class="sample-btn" onclick="loadSample('cpp')">cpp</button>
+      <button class="sample-btn" onclick="loadSample('csharp')">cs</button>
+      <button class="sample-btn" onclick="loadSample('c')">c</button>
     </div>
 
     <div class="grid">
       <div class="panel">
         <div class="panel-header">
           <span id="rawMeta">~0 tokens</span>
+          <span id="detectedLang" style="opacity:.7"></span>
         </div>
         <textarea id="inputCode" placeholder="Paste source code here..." oninput="processCode()"></textarea>
       </div>
@@ -208,205 +254,681 @@
       </div>
     </div>
 
+    <div class="note">
+      Web port of the <code>cavecode</code> Python CLI v1.0.0 engine (same mode semantics: <code>ultra</code> stubs bodies to <code>pass</code> / <code>{ ... }</code>, <code>lite</code> keeps bodies, <code>medium</code> keeps bodies + strips debug logging).
+      Output is a reference representation — edit original files, same as <code>cavecode read</code>. Token counts use the CLI fallback (<code>len/3.6</code>).
+      Select a language or leave on Auto-detect.
+    </div>
+
     <footer>
       Licensed under GNU Affero General Public License v3
     </footer>
   </div>
 
-  <script>
-    let currentMode = 'ultra';
- 
-    function setMode(mode) {
-      currentMode = mode;
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById('btn-' + mode);
-      if (btn) btn.classList.add('active');
-      document.getElementById('outputTitle').innerText = 'Compressed (' + mode.charAt(0).toUpperCase() + mode.slice(1) + ')';
-      processCode();
+<script>
+'use strict';
+/* =====================================================================
+   CaveCode Web Engine — faithful JS port of Python CLI v1.0.0
+   Ports: base.py, ast_pruner.py (heuristic, string-aware), python.py,
+   javascript.py, go.py, rust.py, java.py, cpp.py, csharp.py,
+   tokenizer.py (fallback), config.py (language map).
+   Order of operations matches CLI: prune/ultra-stub -> comments ->
+   strings/logging -> per-lang rewrites -> indent normalize.
+   ===================================================================== */
+
+let currentMode = 'ultra';
+let currentLangOverride = 'auto';
+
+function normalizeMode(m) {
+  if (!m) return 'medium';
+  m = String(m).toLowerCase().trim();
+  if (m === 'lite' || m === 'light') return 'lite';
+  if (m === 'ultra') return 'ultra';
+  return 'medium';
+}
+
+/* ---------- literal masking (for comment/brace scanning) ---------- */
+function maskStrings(src) {
+  // Mask "...", '...', `...`, """...""", '''...''' with placeholders
+  const tokens = [];
+  const re = /("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)/g;
+  const masked = src.replace(re, (m) => {
+    tokens.push(m);
+    return '\u0000CAVE' + (tokens.length - 1) + '\u0000';
+  });
+  return { masked, tokens };
+}
+function unmaskStrings(src, tokens) {
+  let out = src;
+  for (let i = 0; i < tokens.length; i++) {
+    out = out.split('\u0000CAVE' + i + '\u0000').join(tokens[i]);
+  }
+  return out;
+}
+
+/* ---------- telegraphic comments (base.py port) ---------- */
+function telegraphicComment(text, prefix) {
+  prefix = prefix === undefined ? '// ' : prefix;
+  if (/copy\w*|licensed under|all rights reserved|general public license|mit license|apache license/i.test(text)) {
+    const m = text.match(/copy\w*\s+(?:\(c\)\s*)?([0-9\-, ]+)?\s*([a-zA-Z0-9_\. ]+)/i);
+    const owner = m ? m[0].trim() : 'Authors';
+    return prefix + '[License: ' + owner + ']';
+  }
+  if (/#(?:region|endregion)\b/i.test(text)) return '';
+  const mSect = text.match(/[-=*~]{4,}\s*([a-zA-Z0-9_ ]+)\s*[-=*~]{4,}/);
+  if (mSect) return prefix + '[' + mSect[1].trim() + ']';
+  if (/^\s*[-=*~#]{4,}\s*$/.test(text)) return '';
+  text = text.replace(/\{@link\s+#?([^}]+)\}/g, '$1');
+  text = text.replace(/\{@code\s+([^}]+)\}/g, '$1');
+  text = text.replace(/<see\s+cref="([^"]+)"\s*\/>/g, '$1');
+  text = text.replace(/<inheritdoc\s*\/?>/gi, '');
+  text = text.replace(/<[^>]+>/g, ' ');
+  text = text.replace(/\/\*+|\*+\/|^[ \t]*\*[ \t]?/gm, ' ');
+  text = text.replace(/^[ \t]*#+[ \t]?/gm, ' ');
+  text = text.replace(/^[ \t]*\/\/+[ \t]?/gm, ' ');
+  text = text.replace(/\.\.\s*version(?:added|changed)::[^\n]+(?:\n\s+[^\n]+)*/g, '');
+  text = text.replace(/@(?:since|author|version|see|return|param)[^\n]+/g, '');
+  text = text.replace(/\.\.\s*code-block::[^\n]+(?:\n\s+[^\n]+)*/g, '');
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  let content = lines.join(' ');
+  if (!content || /^(?:inheritdoc|todo|fixme)\b/i.test(content)) return '';
+  const sentences = content.split(/(?<=[.!?])\s+/);
+  content = sentences.length ? sentences[0] : content;
+  const subs = [
+    [/\b(?:in order to|is used to|used to|responsible for|capable of|designed to)\b/gi, 'to'],
+    [/\b(?:it is possible to|can be used to|allows you to)\b/gi, 'can'],
+    [/\b(?:please note that|note that|it should be noted that)\b/gi, 'NOTE:'],
+    [/\b(?:as well as|in addition to)\b/gi, '&'],
+    [/\b(?:for example|such as|e\.g\.)\b/gi, 'eg'],
+    [/\breturn(?:ing|s)?\b/gi, 'ret'],
+    [/\bfunction(?:s)?\b/gi, 'fn'],
+    [/\bstring(?:s)?\b/gi, 'str'],
+    [/\bboolean\b/gi, 'bool'],
+    [/\bmessage(?:s)?\b/gi, 'msg'],
+    [/\bconfiguration\b/gi, 'config'],
+    [/\b(?:the|a|an|is|are|was|were|to be|can be|will be|should be|would be|may be|must be|of|in|for|on|with|as|by|at|from|into)\b\s*/gi, ' ']
+  ];
+  for (const [p, r] of subs) content = content.replace(p, r);
+  const words = content.split(/\s+/).map(w => w.trim()).filter(w => w);
+  if (!words.length) return '';
+  return prefix + words.slice(0, 12).join(' ');
+}
+
+function stripLicenseHeader(text) {
+  return text.replace(/^(?:\/\*[\s\S]*?(?:copy\w*|license|all rights reserved)[\s\S]*?\*\/|\/\/[^\n]*(?:copy\w*|license)[^\n]*\r?\n+|#[^\n]*(?:copy\w*|license)[^\n]*\r?\n+|"""[\s\S]*?(?:copy\w*|license)[\s\S]*?""")/i, '');
+}
+
+function processPythonComments(code, mode) {
+  const m = normalizeMode(mode);
+  code = stripLicenseHeader(code);
+  if (m === 'ultra') {
+    code = code.replace(/"""[\s\S]*?"""|'''[\s\S]*?'''/g, '');
+    code = code.replace(/^[ \t]*#[^\n]*\r?\n/gm, '');
+    code = code.replace(/(?<!:)#[^\n]*/g, '');
+    return code;
+  }
+  code = code.replace(/("""|''')([\s\S]*?)\1/g, (full, q, inner) => {
+    const t = telegraphicComment(inner, '');
+    return t ? q + t + q : '""';
+  });
+  code = code.replace(/(?:^[ \t]*#[^\n]*\r?\n)+/gm, (blk) => {
+    const t = telegraphicComment(blk, '# ');
+    return t ? t + '\n' : '';
+  });
+  return code;
+}
+
+function processCComments(code, mode) {
+  const m = normalizeMode(mode);
+  code = stripLicenseHeader(code);
+  if (m === 'ultra') {
+    // string-aware: mask then strip
+    const { masked, tokens } = maskStrings(code);
+    let out = masked.replace(/\/\*[\s\S]*?\*\//g, '');
+    out = out.replace(/(?<!:)\/\/[^\n]*/g, '');
+    return unmaskStrings(out, tokens);
+  }
+  code = code.replace(/\/\*([\s\S]*?)\*\//g, (full, inner) => {
+    const t = telegraphicComment(inner, '');
+    return t ? '/* ' + t + ' */' : '';
+  });
+  code = code.replace(/(?:^[ \t]*\/\/[^\n]*\r?\n)+/gm, (blk) => {
+    const t = telegraphicComment(blk, '// ');
+    return t ? t + '\n' : '';
+  });
+  return code;
+}
+
+function condenseStringLiterals(code, mode) {
+  const m = normalizeMode(mode);
+  if (m === 'lite') return code;
+  const threshold = m === 'ultra' ? 16 : 28;
+  const cutoff = m === 'ultra' ? 10 : 20;
+  function trunc(full, quote, inner) {
+    if (inner.length > threshold && !inner.startsWith('http') && !inner.startsWith('data:')) {
+      return quote + inner.slice(0, cutoff).trim() + '...' + quote;
     }
+    return full;
+  }
+  code = code.replace(/"([^"\n]*)"/g, (full, inner) => trunc(full, '"', inner));
+  code = code.replace(/'([^'\n]*)'/g, (full, inner) => trunc(full, "'", inner));
+  return code;
+}
 
-    function estimateTokens(text) {
-      if (!text) return 0;
-      return Math.round(text.length / 3.7);
+/* Combined strip: base.py regexes + ast_pruner AST patterns (console.debug etc) */
+function stripVerboseLogging(code, mode) {
+  const m = normalizeMode(mode);
+  if (m === 'lite') return code;
+  const pats = [
+    /^[ \t]*logger\.(?:V\(\d+\)\.|debug|trace|info)\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*klog\.(?:V\(\d+\)\.|debug|trace|info)\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*_?logger\.Log(?:Debug|Trace)\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*debugLogger\.log\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*serverLog\(LL_DEBUG.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*(?:DEBUGASSERT|assert|DEBUGF|CURL_TRC)\(.*\);?[ \t]*\r?\n?/gm,
+    // AST-level (ast_pruner.py): console.debug/trace, debug!/trace!, serverAssert etc
+    /^[ \t]*console\.(?:debug|trace)\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*serverAssert\(.*\);?[ \t]*\r?\n?/gm,
+    /^[ \t]*serverLog\(LL_DEBUG.*$/gm,
+    /^[ \t]*(?:debug!|trace!)[^\n]*\r?\n?/gm
+  ];
+  for (const p of pats) code = code.replace(p, '');
+  // Python-style without semicolons (same semantics as CLI medium)
+  code = code.replace(/^[ \t]*logger\.(?:debug|trace|info)\(.*\)[ \t]*\r?\n?/gm, '');
+  return code;
+}
+
+function inlineSmallBlocks(text, mode) {
+  const m = normalizeMode(mode);
+  if (m === 'lite') return text;
+  function inlineCb(full, body) {
+    const lines = body.split('\n').map(l => l.trim()).filter(l => l);
+    const maxLines = m === 'ultra' ? 4 : 3;
+    const maxLen = m === 'ultra' ? 180 : 140;
+    if (!(lines.length >= 1 && lines.length <= maxLines && lines.join('').length + lines.length * 2 <= maxLen + 20)) {
+      // precise check like CLI
+      let total = 0;
+      for (const l of lines) total += l.length;
+      if (!(lines.length >= 1 && lines.length <= maxLines && total <= maxLen)) return full;
     }
-
-    function compressPython(code, mode) {
-      let lines = code.split('\n');
-      let out = [];
-
-      if (mode === 'ultra') {
-        let inFunc = false;
-        let funcIndent = 0;
-        let hasPass = false;
-
-        for (let i = 0; i < lines.length; i++) {
-          let line = lines[i];
-          let trimmed = line.trim();
-
-          if (!trimmed || trimmed.startsWith('#')) continue;
-          if (trimmed.startsWith('"""') || trimmed.startsWith("'''")) {
-            if (trimmed.endsWith('"""') && trimmed.length > 3) continue;
-            if (trimmed.endsWith("'''") && trimmed.length > 3) continue;
-            while (i + 1 < lines.length && !lines[i].includes('"""') && !lines[i].includes("'''")) {
-              i++;
-            }
-            continue;
-          }
-
-          if (trimmed.startsWith('def ') || trimmed.startsWith('async def ')) {
-            inFunc = true;
-            hasPass = false;
-            funcIndent = line.search(/\S/);
-            out.push(line.replace(/def /, 'fn '));
-            continue;
-          }
-
-          if (inFunc) {
-            let currentIndent = line.search(/\S/);
-            if (currentIndent <= funcIndent && trimmed.length > 0) {
-              inFunc = false;
-            } else {
-              if (!hasPass) {
-                out.push(' '.repeat(funcIndent + 4) + 'pass');
-                hasPass = true;
-              }
-              continue;
-            }
-          }
-
-          out.push(line);
-        }
-        return out.join('\n');
-      }
-
-      if (mode === 'medium') {
-        for (let line of lines) {
-          let trimmed = line.trim();
-          if (!trimmed) continue;
-          if (trimmed.startsWith('logger.') || trimmed.startsWith('print(')) continue;
-          if (trimmed.startsWith('#')) {
-            out.push('# ' + trimmed.replace(/^[#\s]+/, '').slice(0, 40));
-            continue;
-          }
-          let mod = line.replace(/\bdef\b/g, 'fn').replace(/\breturn\b/g, 'ret');
-          out.push(mod);
-        }
-        return out.join('\n');
-      }
-
-      for (let line of lines) {
-        let trimmed = line.trim();
-        if (!trimmed) continue;
-        if (trimmed.startsWith('#')) {
-          out.push('# ' + trimmed.replace(/^[#\s]+/, ''));
-        } else {
-          out.push(line);
-        }
-      }
-      return out.join('\n');
+    if (lines.some(l => l.startsWith('//') || l.startsWith('/*'))) return full;
+    const isObj = lines.some(l => l.endsWith(',')) || lines.every(l => l.includes(':'));
+    if (isObj) {
+      const cleaned = lines.map(l => l.replace(/[,;]+$/, ''));
+      return '{ ' + cleaned.join(', ') + ' }';
     }
-
-    function compressBrace(code, mode) {
-      let lines = code.split('\n');
-      let out = [];
-
-      if (mode === 'ultra') {
-        let inBlock = false;
-        let blockDepth = 0;
-
-        for (let line of lines) {
-          let trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
-
-          let isSig = (
-            (trimmed.includes('class ') || trimmed.includes('interface ') || trimmed.includes('struct ') || trimmed.includes('impl ')) ||
-            ((trimmed.startsWith('pub ') || trimmed.startsWith('public ') || trimmed.startsWith('private ') || trimmed.startsWith('fn ') || trimmed.startsWith('function ') || trimmed.includes('): ')) && trimmed.includes('{'))
-          );
-
-          if (isSig && !inBlock && trimmed.includes('{') && !trimmed.endsWith('};')) {
-            inBlock = true;
-            blockDepth = 1;
-            let sig = line.replace(/\{[^}]*$/, '').trim();
-            out.push(sig + ' { ... }');
-            continue;
-          }
-
-          if (inBlock) {
-            for (let ch of line) {
-              if (ch === '{') blockDepth++;
-              if (ch === '}') blockDepth--;
-            }
-            if (blockDepth <= 0) inBlock = false;
-            continue;
-          }
-
-          out.push(line);
-        }
-        return out.join('\n');
-      }
-
-      if (mode === 'medium') {
-        for (let line of lines) {
-          let trimmed = line.trim();
-          if (!trimmed) continue;
-          if (trimmed.startsWith('console.log') || trimmed.startsWith('logger.') || trimmed.startsWith('fmt.Println') || trimmed.startsWith('System.out.println')) continue;
-          if (trimmed.startsWith('//')) {
-            out.push('// ' + trimmed.replace(/^[\/\s]+/, '').slice(0, 40));
-            continue;
-          }
-          let mod = line
-            .replace(/\bpublic\b/g, 'pub')
-            .replace(/\bprivate\b/g, 'priv')
-            .replace(/\breturn\b/g, 'ret')
-            .replace(/\bfunction\b/g, 'fn');
-          out.push(mod);
-        }
-        return out.join('\n');
-      }
-
-      for (let line of lines) {
-        let trimmed = line.trim();
-        if (!trimmed) continue;
-        out.push(line);
-      }
-      return out.join('\n');
+    const res = [];
+    for (let i = 0; i < lines.length; i++) {
+      let clean = lines[i].replace(/;+$/, '');
+      if (i > 0 && (/^(\?|:|&&|\|\||\+|\.|=>|\)|\])/.test(clean) || /(\?|:|&&|\|\||\+|-|\*|\/|=|=>|\(|\[)$/.test(res[res.length-1]))) {
+        res[res.length-1] = res[res.length-1] + ' ' + clean;
+      } else res.push(clean);
     }
+    return '{ ' + res.join('; ') + ' }';
+  }
+  for (let k = 0; k < 3; k++) {
+    text = text.replace(/\{\s*\n([^{}]+?)\n\s*\}/g, inlineCb);
+  }
+  return text;
+}
 
-    function processCode() {
-      let input = document.getElementById('inputCode').value;
+function stripSemicolons(text) {
+  return text.replace(/;[ \t]*$/gm, '');
+}
 
-      let compressed = '';
-      if (input.trim()) {
-        const isPython = input.includes('def ') || (input.includes('import ') && !input.includes(';'));
-        if (isPython) {
-          compressed = compressPython(input, currentMode);
-        } else {
-          compressed = compressBrace(input, currentMode);
-        }
+function normalizeIndentation(text) {
+  const lines = [];
+  for (const line of text.split('\n')) {
+    const stripped = line.trim();
+    if (!stripped) continue;
+    const expanded = line.replace(/\t/g, '    ');
+    const m = expanded.match(/^ */);
+    const origIndent = m ? m[0].length : 0;
+    let level = 0;
+    if (origIndent >= 4) level = Math.floor(origIndent / 4);
+    else if (origIndent >= 2) level = 1;
+    lines.push('  '.repeat(level) + stripped);
+  }
+  return lines.join('\n');
+}
+
+/* ---------- ultra body stubbing (heuristic port of ast_pruner ultra) ---------- */
+function stubPythonBodies(code) {
+  // collapse multiline defs first (same regex as python.py)
+  code = code.replace(/(?:async\s+)?(?:def|fn)\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  const lines = code.split('\n');
+  const out = [];
+  let inFunc = false, funcIndent = 0, hasPass = false;
+  const defRe = /^(?:async\s+)?def\s+[a-zA-Z0-9_]+\s*\(.*\)\s*(?:->.*)?:\s*(?:#[^\n]*)?$/;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const ind = line.replace(/\t/g, '    ').match(/^ */)[0].length;
+    if (defRe.test(trimmed)) {
+      inFunc = true; funcIndent = ind; hasPass = false;
+      out.push(line);
+      continue;
+    }
+    if (inFunc) {
+      if (ind <= funcIndent) {
+        inFunc = false;
+        // fall through to normal handling
+      } else {
+        if (!hasPass) { out.push('  pass'); hasPass = true; }
+        continue;
       }
-
-      document.getElementById('outputCode').value = compressed;
-
-      const rawTok = estimateTokens(input);
-      const compTok = estimateTokens(compressed);
-      const savedTok = Math.max(0, rawTok - compTok);
-      const pct = rawTok > 0 ? ((savedTok / rawTok) * 100).toFixed(1) : 0;
-
-      document.getElementById('rawMeta').innerText = '~' + rawTok.toLocaleString() + ' tokens';
-      document.getElementById('statRawTokens').innerText = '~' + rawTok.toLocaleString();
-      document.getElementById('statCompTokens').innerText = '~' + compTok.toLocaleString();
-      document.getElementById('statSavedTokens').innerText = '~' + savedTok.toLocaleString();
-      document.getElementById('statReduction').innerText = '~' + pct + '%';
     }
+    out.push(line);
+  }
+  return out.join('\n');
+}
 
-    function copyOutput() {
-      const out = document.getElementById('outputCode');
-      out.select();
-      navigator.clipboard.writeText(out.value);
-      const btn = document.getElementById('copyBtn');
-      btn.innerText = 'Copied!';
-      setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
+function isBraceFunctionSignature(trimmed) {
+  if (!trimmed) return false;
+  if (/^(class|struct|interface|enum|namespace|typedef|if|for|while|switch|catch|try|else|do|return|import|package|using)\b/.test(trimmed)) return false;
+  if (!trimmed.includes('(') || !trimmed.includes(')')) return false;
+  // must look like fn decl (has brace or arrow or colon-type + brace on next line handled by caller)
+  if (/\b(fn|func|function|constructor)\b/.test(trimmed)) return true;
+  if (/\basync\s+[A-Za-z0-9_]+\s*\(/.test(trimmed)) return true;
+  if (/=>/.test(trimmed) && trimmed.includes('{')) return true;
+  // Generic Type name(...) [throws/const] {?  — Java/C#/C++/Go/Rust style
+  if (/^[\w<>\[\]\*&:,.?\s]+\s+\w+\s*\([^;{}]*\)\s*(throws\s+[\w,\s]+)?\s*(const\s*)?(noexcept\s*)?\{?\s*$/.test(trimmed)) {
+    if (/^\s*(if|while|for|switch|catch)\b/.test(trimmed)) return false;
+    return true;
+  }
+  if (/^\s*fn\s+/.test(trimmed) || /^\s*func\s+/.test(trimmed)) return true;
+  if (/\)\s*:\s*[\w<>\[\]\?|&,\s]+\s*\{?\s*$/.test(trimmed)) return true; // TS return type
+  return false;
+}
+
+function stubBraceBodies(code) {
+  const lines = code.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const nextTrimmed = i + 1 < lines.length ? lines[i+1].trim() : '';
+    const sigHere = trimmed.includes('{') && isBraceFunctionSignature(trimmed);
+    const sigNext = !trimmed.includes('{') && nextTrimmed === '{' && isBraceFunctionSignature(trimmed);
+    if ((sigHere || sigNext) && normalizeMode(currentMode) === 'ultra') {
+      // find opening brace line
+      let braceLineIdx = sigHere ? i : i + 1;
+      // output collapsed signature
+      let sig = sigHere ? line.slice(0, line.indexOf('{')).trimEnd() : line.trimEnd();
+      // collapse internal newlines already single line here; keep indent
+      const indent = line.match(/^ */)[0];
+      out.push(indent + sig.replace(/^\s+/, '').replace(/\s+/g, (s) => s.includes('\n') ? ' ' : s) + ' { ... }');
+      // skip body via depth counting on masked text
+      let depth = 0;
+      let started = false;
+      let j = braceLineIdx;
+      // build masked joined tail for counting
+      for (; j < lines.length; j++) {
+        const { masked } = maskStrings(lines[j]);
+        // strip // comments on masked (strings already masked)
+        const noComm = masked.replace(/\/\/[^\n]*/g, '');
+        for (const ch of noComm) {
+          if (ch === '{') { depth++; started = true; }
+          if (ch === '}') depth--;
+        }
+        if (started && depth <= 0) { j++; break; }
+      }
+      i = j;
+      continue;
     }
-  </script>
+    out.push(line);
+    i++;
+  }
+  return out.join('\n');
+}
+
+/* collapse multiline call args / params (ast_pruner fallback, all modes where applicable) */
+function collapseParamLists(code, mode) {
+  const m = normalizeMode(mode);
+  // (\n a, \n b) -> (a, b) for short lists
+  code = code.replace(/\(\s*\n([^()]{1,220}?)\n\s*\)/g, (full, inner) => {
+    if (inner.includes('{') || inner.includes('=>') || inner.includes('lambda')) return full;
+    const parts = inner.split(',').map(s => s.trim().replace(/\s+/g, ' ')).filter(s => s);
+    if (parts.length >= 1 && full.length < 260) return '(' + parts.join(', ') + ')';
+    return full;
+  });
+  return code;
+}
+
+/* ---------- per-language compressors (same order as CLI) ---------- */
+function compressPython(code, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processPythonComments(code, 'ultra');
+    code = stubPythonBodies(code);
+  } else {
+    code = processPythonComments(code, m);
+  }
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  if (m === 'ultra') {
+    code = code.replace(/^[ \t]*if\s+TYPE_CHECKING:[\s\S]*?(?=^[a-zA-Z0-9_#])/gm, '');
+    code = code.replace(/\bself\./g, '');
+  }
+  code = code.replace(/(?:async\s+)?(?:def|fn)\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/^([ \t]*)if\s+([^\n:]+):\s*\n[ \t]+(return\b[^\n]+|raise\b[^\n]+)/gm, '$1if $2: $3');
+  code = code.replace(/from\s+([a-zA-Z0-9_\.]+)\s+import\s*\(([^)]+)\)/g, (full, mod, inner) => {
+    const parts = inner.split(/[\s,]+/).map(x => x.trim().replace(/,+$/, '')).filter(x => x);
+    return 'from ' + mod + ' import ' + parts.join(', ');
+  });
+  code = code.replace(/[ \t]*#\s*(?:type:\s*ignore(?:\[[^\]]*\])?|noqa:[^\n]+|noqa\b)/g, '');
+  code = code.replace(/\(\s*\n([^()]+?)\n\s*\)/g, (full, inner) => {
+    const lns = inner.split('\n').map(l => l.trim().replace(/,+$/, '')).filter(l => l && !l.startsWith('#'));
+    if (lns.length >= 2 && lns.length <= 8 && lns.join('').length <= 180) return '(' + lns.join(', ') + ')';
+    return full;
+  });
+  code = code.replace(/(?:^[ \t]*import\s+[a-zA-Z0-9_\.]+\s*\r?\n){2,}/gm, (blk) => {
+    const lns = blk.split('\n').map(l => l.trim()).filter(l => l);
+    const mods = lns.filter(l => l.startsWith('import ')).map(l => l.slice(7).trim());
+    return mods.length >= 2 ? 'import ' + mods.join(', ') + '\n' : blk;
+  });
+  code = code.replace(/\b(?:typing\.)?Optional\[([a-zA-Z0-9_\[\],\s]+)\]/g, '$1?');
+  code = code.replace(/\b(?:typing\.)?Union\[([a-zA-Z0-9_]+),\s*([a-zA-Z0-9_]+)\]/g, '$1 | $2');
+  code = code.replace(/\btyping\.List\b/g, 'list').replace(/\btyping\.Dict\b/g, 'dict').replace(/\btyping\.Set\b/g, 'set').replace(/\btyping\.Tuple\b/g, 'tuple').replace(/\btyping\.Any\b/g, 'any');
+  code = code.replace(/\breturn\b/g, 'ret').replace(/\bdef\b/g, 'fn');
+  code = code.replace(/if\s+__name__\s*==\s*['"]__main__['"]\s*:/g, 'if __main__:');
+  code = code.replace(/([:\n]\s*"""[\s\S]*?"""\s*)\n\s*pass\b/g, '$1');
+  return normalizeIndentation(code);
+}
+
+function compressJavaScript(code, lang, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    // stub AFTER comment strip (heuristic port of tree-sitter prune)
+    const saved = currentMode; currentMode = 'ultra';
+    code = stubBraceBodies(code);
+    currentMode = saved;
+  } else {
+    code = processCComments(code, m);
+  }
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/import\s+(?:type\s+)?\{([\s\S]*?)\}\s*from\s*['"]([^'"]+)['"]\s*;?/g, (full, items, mod) => {
+    const isType = /type\s+/.test(full.split('{')[0]) ? 'type ' : '';
+    const arr = items.split(',').map(x => x.trim()).filter(x => x);
+    return 'import ' + isType + '{ ' + arr.join(', ') + " } from '" + mod + "';";
+  });
+  code = code.replace(/export\s*\{([\s\S]*?)\}\s*;/g, (full, items) => {
+    const arr = items.split(',').map(x => x.trim()).filter(x => x);
+    return 'export { ' + arr.join(', ') + ' };';
+  });
+  if (lang === 'typescript' || lang === 'ts') {
+    code = code.replace(/\b([a-zA-Z0-9_.]+)\s*\|\s*(?:undefined|null)\b/g, '$1?');
+    code = code.replace(/\b(?:undefined|null)\s*\|\s*([a-zA-Z0-9_.]+)\b/g, '$1?');
+    code = code.replace(/\breadonly\b/g, 'ro');
+    code = code.replace(/:\s*string\b/g, ': str').replace(/:\s*number\b/g, ': num');
+    code = code.replace(/<string>/g, '<str>').replace(/<number>/g, '<num>');
+    code = code.replace(/\bPromise<string>\b/g, 'Promise<str>').replace(/\bPromise<boolean>\b/g, 'Promise<bool>');
+    code = code.replace(/((?:exp\s+)?(?:interface|type)\s+[^{]+?)\{\s*\n([^{}]+?)\n\s*\}/g, (full, header, body) => {
+      const lns = body.split('\n').map(l => l.trim().replace(/;$/, '')).filter(l => l);
+      if (lns.length <= 6 && lns.join('').length <= 180 && !lns.some(l => l.startsWith('//'))) return header + '{ ' + lns.join('; ') + ' }';
+      return full;
+    });
+  }
+  code = code.replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '').replace(/\bfunction\b/g, 'fn');
+  code = code.replace(/\bexport\s+default\s+function\b/g, 'exp def fn').replace(/\bexport\s+default\b/g, 'exp def').replace(/\bexport\b/g, 'exp');
+  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\bboolean\b/g, 'bool');
+  code = code.replace(/^[ \t]*(?:static\s+|pub\s+|priv\s+|prot\s+|ro\s+|fn\s+|func\s+|async\s+)*[a-zA-Z0-9_*&<>, ]+\s+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?::\s*[^;{]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = stripSemicolons(code);
+  code = inlineSmallBlocks(code, m);
+  code = code.replace(/(?:^[ \t]*import\s+[^;\n]+;?\s*\r?\n){2,}/gm, (blk) => {
+    const lns = blk.split('\n').map(l => l.trim().replace(/;$/, '')).filter(l => l);
+    return lns.join('; ') + ';\n';
+  });
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+function compressGo(code, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    const s = currentMode; currentMode = 'ultra'; code = stubBraceBodies(code); currentMode = s;
+  } else code = processCComments(code, m);
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/\bfunc\b/g, 'fn').replace(/\breturn\b/g, 'ret').replace(/\binterface\{\}/g, 'any');
+  code = code.replace(/^[ \t]*fn\s+(?:\([^)]+\)\s+)?[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:\([^)]*?\)|[a-zA-Z0-9_*&<>, ]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a) => ('if err != nil { ret ' + a.trim() + ' }').replace('ret  }', 'ret }'));
+  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*([^\n]+?)\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a, b) => ('if err != nil { ' + a.trim() + '; ret ' + b.trim() + ' }'));
+  code = code.replace(/import\s*\(\s*\n([^)]+?)\n\s*\)/g, (full, inner) => {
+    const pkgs = [...inner.matchAll(/"([^"]+)"/g)].map(x => '"' + x[1] + '"');
+    return pkgs.length >= 2 ? 'import (' + pkgs.join(' ') + ')\n' : full;
+  });
+  code = inlineSmallBlocks(code, m);
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+function compressRust(code, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    const s = currentMode; currentMode = 'ultra'; code = stubBraceBodies(code); currentMode = s;
+  } else code = processCComments(code, m);
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/#\[inline[^\]]*\]\s*/g, '').replace(/#\[doc\(hidden[^\]]*\)\]\s*/g, '').replace(/#\[must_use[^\]]*\]\s*/g, '').replace(/#\[rustc_[^\]]*\]\s*/g, '');
+  code = code.replace(/#\[derive\(([^)]+)\)\]/g, (full, inner) => '#[derive(' + inner.split(',').map(x => x.trim()).join(',') + ')]');
+  code = code.replace(/match\s+([a-zA-Z0-9_.]+)\s*\{\s*Ok\((\w+)\)\s*=>\s*\2,\s*Err\(\w+\)\s*=>\s*return\s+Err\([^)]+\),?\s*\}/g, '$1?');
+  code = code.replace(/\bpub\(crate\)\b/g, 'pub').replace(/\breturn\b/g, 'ret');
+  code = inlineSmallBlocks(code, m);
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+function compressJava(code, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    const s = currentMode; currentMode = 'ultra'; code = stubBraceBodies(code); currentMode = s;
+  } else code = processCComments(code, m);
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/@SuppressWarnings\([^)]*\)\s*/g, '').replace(/@Generated\([^)]*\)\s*/g, '').replace(/@Override\s*/g, '').replace(/@Nullable\s*/g, '?');
+  code = code.replace(/\bpublic\s+static\s+final\b/g, 'const').replace(/\bprivate\s+static\s+final\b/g, 'priv const');
+  code = code.replace(/\bpublic\s+static\b/g, 'pub static').replace(/\bprivate\s+static\b/g, 'priv static');
+  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\bboolean\b/g, 'bool').replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '');
+  code = code.replace(/new\s+([A-Z]\w*)<[^>]+>\s*\(/g, 'new $1<>(');
+  code = code.replace(/(?:^[ \t]*import\s+[^;\n]+;\s*\r?\n){2,}/gm, (blk) => {
+    const lns = blk.split('\n').map(l => l.trim().replace(/;$/, '')).filter(l => l);
+    return lns.join('; ') + ';\n';
+  });
+  code = code.replace(/(?:static\s+|pub\s+|priv\s+|prot\s+|final\s+|volatile\s+|synchronized\s+)*[a-zA-Z0-9_*&<>, \[\]?]+\s+[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:throws\s+[a-zA-Z0-9_, ]+)?\s*\{/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = stripSemicolons(code);
+  code = inlineSmallBlocks(code, m);
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+function compressCpp(code, lang, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    const s = currentMode; currentMode = 'ultra'; code = stubBraceBodies(code); currentMode = s;
+  } else code = processCComments(code, m);
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/#ifndef\s+([A-Za-z0-9_]+)\s*\r?\n#define\s+\1/, '/* [guard $1] */ #pragma once');
+  code = code.replace(/(?:^[ \t]*#include\s+[<"][^>"\n]+[>"]\s*\r?\n(?:[ \t]*\r?\n)?)+/gm, (blk) => {
+    const ang = [...blk.matchAll(/#include\s+<([^>]+)>/g)].map(x => x[1]);
+    const quo = [...blk.matchAll(/#include\s+"([^"]+)"/g)].map(x => x[1]);
+    const all = ang.concat(quo);
+    return all.length >= 2 ? '#include <' + all.join(', ') + '>\n' : blk;
+  });
+  code = code.replace(/\breturn\b/g, 'ret');
+  code = code.replace(/\bunsigned\s+int\b/g, 'u32').replace(/\bunsigned\s+long\s+long\b/g, 'u64').replace(/\bunsigned\s+long\b/g, 'u64').replace(/\bunsigned\s+char\b/g, 'u8');
+  code = code.replace(/\buint32_t\b/g, 'u32').replace(/\buint64_t\b/g, 'u64').replace(/\buint8_t\b/g, 'u8').replace(/\bint32_t\b/g, 'i32').replace(/\bint64_t\b/g, 'i64');
+  code = code.replace(/\bsize_t\b/g, 'usize').replace(/\bssize_t\b/g, 'isize');
+  code = code.replace(/\bNULL\b/g, '0').replace(/\bnullptr\b/g, '0').replace(/\bTRUE\b/g, '1').replace(/\bFALSE\b/g, '0');
+  code = code.replace(/__attribute__\s*\(\([^)]*\)\)/g, '').replace(/__declspec\s*\([^)]*\)/g, '');
+  if (lang === 'cpp') {
+    code = code.replace(/\bstd::(vector|string|map|unordered_map|set|unordered_set|unique_ptr|shared_ptr|make_unique|make_shared|pair|tuple|optional|variant|cout|cin|cerr|endl)\b/g, '$1');
+    code = code.replace(/namespace\s+(\w+)\s*\{\s*\n\s*namespace\s+(\w+)\s*\{/g, 'namespace $1::$2 {');
+    code = code.replace(/\bconst\s+auto&/g, 'auto&');
+  }
+  code = code.replace(/^[ \t]*(?:static\s+|inline\s+|virtual\s+|explicit\s+|constexpr\s+|friend\s+)*(?:[a-zA-Z0-9_*&<>,]+\s+)+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_:]+\s*\([^;{]*?\)\s*(?:const\s*)?(?:noexcept\s*)?\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/\bstruct\s+([A-Za-z0-9_]+)\b/g, '$1');
+  code = inlineSmallBlocks(code, m);
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+function compressCSharp(code, mode) {
+  const m = normalizeMode(mode);
+  if (!code.trim()) return code;
+  if (m === 'ultra') {
+    code = processCComments(code, 'ultra');
+    const s = currentMode; currentMode = 'ultra'; code = stubBraceBodies(code); currentMode = s;
+  } else code = processCComments(code, m);
+  code = condenseStringLiterals(code, m);
+  code = stripVerboseLogging(code, m);
+  code = code.replace(/\bpublic\s+static\s+readonly\b/g, 'const').replace(/\bprivate\s+static\s+readonly\b/g, 'priv const');
+  code = code.replace(/\bpublic\s+static\b/g, 'pub static').replace(/\bprivate\s+static\b/g, 'priv static');
+  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\binternal\b/g, 'intnl').replace(/\breadonly\b/g, 'ro').replace(/\bboolean\b/g, 'bool').replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '');
+  code = code.replace(/\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*set\s*\{[^}]*?\}\s*\}/g, '{ get => $1; set; }');
+  code = code.replace(/\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*\}/g, '{ get => $1; }');
+  code = code.replace(/\{\s*get;\s*set;\s*\}/g, '{get;set;}');
+  code = code.replace(/=>\s*\n\s*/g, '=> ');
+  code = code.replace(/(?:pub\s+|priv\s+|prot\s+|intnl\s+|static\s+|async\s+|virtual\s+|override\s+|sealed\s+)*[a-zA-Z0-9_*&<>, \[\]?]+\s+[a-zA-Z0-9_]+\s*\([^)]*?\)\s*\{/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/(?:^[ \t]*using\s+[^;\n]+;\s*\r?\n(?:[ \t]*\r?\n)?)+/gm, (blk) => {
+    const ns = [...blk.matchAll(/using\s+([^;\n]+);/g)].map(x => x[1].trim());
+    return ns.length >= 2 ? 'using ' + ns.join('; ') + ';\n' : blk;
+  });
+  code = stripSemicolons(code);
+  code = inlineSmallBlocks(code, m);
+  code = collapseParamLists(code, m);
+  return normalizeIndentation(code);
+}
+
+/* ---------- language detection ---------- */
+function detectLanguage(code) {
+  if (currentLangOverride && currentLangOverride !== 'auto') return currentLangOverride;
+  const t = code;
+  if (/^\s*package\s+\w+/m.test(t) && /\bfunc\b/.test(t)) return 'go';
+  if (/#include\s*[<"]/.test(t)) {
+    if (/\b(class|std::|cout|template|namespace)\b/.test(t)) return 'cpp';
+    return 'c';
+  }
+  if (/using\s+System/.test(t) && /\bnamespace\b/.test(t)) return 'csharp';
+  if (/\bpublic\s+class\b/.test(t) && /import\s+java/.test(t)) return 'java';
+  if (/\bpublic\s+class\b/.test(t) && /System\.out|void\s+\w+\s*\(/.test(t)) {
+    return /using\s+System|namespace\s+\w+/.test(t) ? 'csharp' : 'java';
+  }
+  if (/^\s*(use\s+\w+::|fn\s+\w+\s*\(|impl\s+\w+|#\[derive)/m.test(t)) return 'rust';
+  if (/:\s*(string|number|boolean|Observable|Promise<)|interface\s+\w+\s*\{|type\s+\w+\s*=/.test(t)) return 'typescript';
+  if (/(def\s+\w+\s*\(|:\s*->|import\s+os|from\s+\w+\s+import\s+)/.test(t) && !/;/.test(t.split('\n')[0] || '')) {
+    if (/^\s*(def\s+|async\s+def\s+|import\s+\w+|from\s+\w+)/m.test(t)) return 'python';
+  }
+  if (/\b(function|=>|console\.|require\(|import\s+.*from\s+['"])/.test(t)) return 'javascript';
+  if (/^\s*def\s+/m.test(t)) return 'python';
+  return 'javascript';
+}
+
+function compressDispatch(code, lang, mode) {
+  const m = normalizeMode(mode);
+  switch (lang) {
+    case 'python': return compressPython(code, m);
+    case 'javascript': case 'js': return compressJavaScript(code, 'javascript', m);
+    case 'typescript': case 'ts': return compressJavaScript(code, 'typescript', m);
+    case 'go': return compressGo(code, m);
+    case 'rust': return compressRust(code, m);
+    case 'java': return compressJava(code, m);
+    case 'cpp': return compressCpp(code, 'cpp', m);
+    case 'c': return compressCpp(code, 'c', m);
+    case 'csharp': case 'cs': return compressCSharp(code, m);
+    default: return compressJavaScript(code, 'javascript', m);
+  }
+}
+
+/* ---------- tokens (match CLI fallback len/3.6) ---------- */
+function estimateTokensFallback(text) {
+  if (!text) return 0;
+  return Math.max(1, Math.round(text.length / 3.6));
+}
+
+/* ---------- samples ---------- */
+const SAMPLES = {
+python: '"""User service module."""\nimport os\nimport logging\nfrom typing import Optional\n\nlogger = logging.getLogger(__name__)\n\nclass UserService:\n    """Service for managing users."""\n\n    def __init__(self, db_url: str, timeout: int = 30):\n        self.db_url = db_url\n        self.timeout = timeout\n\n    def get_user(self, user_id: int) -> Optional[str]:\n        """Fetch a user by ID."""\n        # Check cache first\n        if user_id in self._cache:\n            logger.info("hit")\n            return self._cache[user_id]\n        return None\n',
+javascript: 'import { EventEmitter } from "events";\nimport axios from "axios";\n\n// User API client\n export class UserClient extends EventEmitter {\n  constructor(baseUrl, timeout = 5000) {\n    super();\n    this.baseUrl = baseUrl;\n  }\n  async getUser(userId) {\n    console.log(`Fetching ${userId}`);\n    if (this.cache.has(userId)) {\n      console.info("hit");\n      return this.cache.get(userId);\n    }\n    const res = await axios.get(`${this.baseUrl}/users/${userId}`);\n    return res.data;\n  }\n}\n',
+typescript: 'import { Observable, of } from "rxjs";\n\nexport interface User {\n  id: number;\n  name: string;\n  isActive: boolean;\n}\n\nexport class UserService {\n  private cache = new Map<number, User>();\n  constructor(private baseUrl: string) {}\n  async getUser(userId: number): Promise<User | null> {\n    console.log(userId);\n    if (this.cache.has(userId)) return this.cache.get(userId)!;\n    return null;\n  }\n}\n',
+go: 'package userservice\n\nimport (\n  "errors"\n  "log"\n)\n\n// User represents a user.\ntype User struct {\n  ID int64 `json:"id"`\n  Name string `json:"name"`\n}\n\nfunc New(dbURL string) *Service {\n  return &Service{DBURL: dbURL}\n}\n\nfunc (s *Service) GetUser(id int64) (*User, error) {\n  if u, ok := s.cache[id]; ok {\n    log.Printf("hit %d", id)\n    return u, nil\n  }\n  if id <= 0 {\n    return nil, errors.New("invalid")\n  }\n  return nil, nil\n}\n',
+rust: 'use std::collections::HashMap;\n\n/// Service for managing users.\n pub struct UserService {\n  db_url: String,\n  cache: HashMap<u64, String>,\n}\n\nimpl UserService {\n  /// Create a new service.\n  pub fn new(db_url: String) -> Self {\n    Self { db_url, cache: HashMap::new() }\n  }\n  pub fn get_user(&mut self, user_id: u64) -> Option<&String> {\n    if self.cache.contains_key(&user_id) {\n      return self.cache.get(&user_id);\n    }\n    None\n  }\n}\n',
+java: 'package com.example.users;\n\nimport java.util.*;\n\n/** Service for managing users. */\npublic class UserService {\n  private final String dbUrl;\n  public UserService(String dbUrl) {\n    this.dbUrl = dbUrl;\n  }\n  public String getUser(int userId) {\n    if (userId <= 0) {\n      return null;\n    }\n    return "Alice";\n  }\n}\n',
+cpp: '#include <string>\n#include <vector>\n#include <iostream>\n\n// Service for managing users.\nclass UserService {\npublic:\n  UserService(const std::string& db_url) : db_url_(db_url) {}\n  std::string getUser(int user_id) {\n    if (user_id <= 0) {\n      return "";\n    }\n    std::cout << user_id << std::endl;\n    return "Alice";\n  }\nprivate:\n  std::string db_url_;\n};\n',
+csharp: 'using System;\nusing System.Collections.Generic;\n\nnamespace Example.Users\n{\n  /// Service for managing users.\n  public class UserService\n  {\n    private readonly string _dbUrl;\n    public UserService(string dbUrl) { _dbUrl = dbUrl; }\n    public string GetUser(int userId)\n    {\n      if (userId <= 0) return null;\n      return "Alice";\n    }\n  }\n}\n',
+c: '#include <stdio.h>\n#include <stdbool.h>\n\n// User record.\ntypedef struct {\n  int id;\n  char name[64];\n  bool is_active;\n} User;\n\nUser* service_get_user(int user_id) {\n  if (user_id <= 0) {\n    return NULL;\n  }\n  printf("fetch %d\\n", user_id);\n  return NULL;\n}\n'
+};
+
+/* ---------- UI ---------- */
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + mode);
+  if (btn) btn.classList.add('active');
+  document.getElementById('outputTitle').innerText = 'Compressed (' + mode.charAt(0).toUpperCase() + mode.slice(1) + ')';
+  processCode();
+}
+function onLangChange() {
+  currentLangOverride = document.getElementById('langSelect').value;
+  processCode();
+}
+function loadSample(lang) {
+  document.getElementById('langSelect').value = lang;
+  currentLangOverride = lang;
+  document.getElementById('inputCode').value = SAMPLES[lang] || '';
+  processCode();
+}
+function processCode() {
+  const input = document.getElementById('inputCode').value;
+  let compressed = '';
+  let lang = 'auto';
+  if (input.trim()) {
+    lang = detectLanguage(input);
+    try {
+      compressed = compressDispatch(input, lang, currentMode);
+    } catch (e) {
+      compressed = '/* compression error: ' + (e && e.message) + ' */';
+    }
+  }
+  document.getElementById('outputCode').value = compressed;
+  document.getElementById('detectedLang').innerText = input.trim() ? lang + ' • ' + currentMode : '';
+  const rawTok = estimateTokensFallback(input);
+  const compTok = estimateTokensFallback(compressed);
+  const savedTok = Math.max(0, rawTok - compTok);
+  const pct = rawTok > 0 ? ((savedTok / rawTok) * 100).toFixed(1) : '0.0';
+  document.getElementById('rawMeta').innerText = '~' + rawTok.toLocaleString() + ' tokens';
+  document.getElementById('statRawTokens').innerText = '~' + rawTok.toLocaleString();
+  document.getElementById('statCompTokens').innerText = '~' + compTok.toLocaleString();
+  document.getElementById('statSavedTokens').innerText = '~' + savedTok.toLocaleString();
+  document.getElementById('statReduction').innerText = '~' + pct + '%';
+}
+function copyOutput() {
+  const out = document.getElementById('outputCode');
+  out.select();
+  if (navigator.clipboard) navigator.clipboard.writeText(out.value);
+  else document.execCommand('copy');
+  const btn = document.getElementById('copyBtn');
+  btn.innerText = 'Copied!';
+  setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
+}
+// expose for parity testing
+window.CaveCodeWeb = { compressDispatch, detectLanguage, normalizeMode, estimateTokensFallback };
+processCode();
+</script>
 </body>
 </html>
