@@ -5,6 +5,7 @@
 LLMs and AI coding agents consume massive amounts of tokens reading boilerplate, repetitive syntax, and verbose formatting. CaveCode compresses source code before passing it to AI agents, stripping unnecessary token overhead while preserving critical information. It reduces input token usage by up to **80%+** with three configurable compression tiers. This tool is mainly useful for large codebases, large multi-file agentic operations etc.
 
 - 🌐 **[Web Playground](https://grimm67123.github.io/cavecode/)**: Try compression modes directly in your browser.
+- 📸 **[Showcase](SHOWCASE.md)**: All 9 languages, ultra → medium → lite.
 - 🤖 **Agent Protocol**: Includes an [AGENT.md](AGENT.md) documentation file for AI coding agents.
 
 > **Compressed output is an information representation for agents, not executable source code.** Agents continue to (and must) read and edit the original source files.
