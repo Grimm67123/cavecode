@@ -3172,7 +3172,7 @@ public:
     if (shipping == 0.0) { cout << "applying free shippi..." << endl; }
     double total = std::round((subtotal + tax + shipping) * 100.0) / 100.0;
     cout << "grand total computed as " << total << " for downstream payment" << endl;
-    ret {{"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
+    ret { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
   }
 // Reserve inventory preferred warehouse before payment capture.
   bool reserveInventory(const Order& order, const string& warehouse = "us-east-1") {
@@ -3312,7 +3312,7 @@ public:
     }
     double total = std::round((subtotal + tax + shipping) * 100.0) / 100.0;
     cout << "grand total computed as " << total << " for downstream payment" << endl;
-    ret {{"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
+    ret { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
   }
 // Reserve inventory preferred warehouse before payment capture.
   bool reserveInventory(const Order& order, const string& warehouse = "us-east-1") {
@@ -3481,7 +3481,7 @@ public:
         }
         double total = std::round((subtotal + tax + shipping) * 100.0) / 100.0;
         std::cout << "grand total computed as " << total << " for downstream payment" << std::endl;
-        return {{"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
+        return { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
     }
 
     // Reserve inventory in the preferred warehouse before payment capture.
