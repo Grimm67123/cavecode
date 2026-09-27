@@ -23,13 +23,13 @@ pip install cavecode
 Or install directly from Git:
 
 ```bash
-pip install git+https://github.com/cavecode/cavecode.git
+pip install git+https://github.com/grimm67123/cavecode.git
 ```
 
 Or clone and install in editable development mode:
 
 ```bash
-git clone https://github.com/cavecode/cavecode.git
+git clone https://github.com/grimm67123/cavecode.git
 cd cavecode
 pip install -e .
 ```
