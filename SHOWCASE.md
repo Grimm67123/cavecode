@@ -1,6 +1,6 @@
 # CaveCode Showcase — all 9 languages, ultra → medium → lite
 
-> Same order-processing sample in each language. Generated with `cavecode read -m <mode>` (CLI v1.0.0). Directory totals: ultra ~83%, medium ~19%, lite ~8% (all estimated). Per-file numbers vary by language idiom.
+> Same order-processing sample in each language. Generated with `cavecode read -m <mode>` (CLI v0.0.1). Directory totals: ultra ~83%, medium ~19%, lite ~8% (all estimated). Per-file numbers vary by language idiom.
 
 ## Python (`order_service.py`) — estimated raw ~2131 tokens
 

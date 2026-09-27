@@ -33,7 +33,7 @@ BANNER_TEXT = r"""
 def print_banner():
     """Print the CaveCode banner."""
     console.print(f"[bold cyan]{BANNER_TEXT}[/bold cyan]")
-    console.print("[dim]v1.0.0 | High-Density Source-Code Compressor | Original Files Untouched[/dim]\n")
+    console.print("[dim]v0.0.1 | High-Density Source-Code Compressor | Original Files Untouched[/dim]\n")
 
 
 def print_stats_table(

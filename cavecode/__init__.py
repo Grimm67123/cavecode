@@ -8,7 +8,7 @@ Slashes prompt tokens by 30-50%+ (up to 80-90%) across 9 programming languages w
 Original target files are NEVER touched.
 """
 
-__version__ = "1.0.0"
+__version__ = "0.0.1"
 
 from cavecode.engine import CaveCodeEngine
 from cavecode.tokenizer import TokenEstimator
