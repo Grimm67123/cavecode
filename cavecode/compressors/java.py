@@ -42,7 +42,6 @@ class JavaCompressor(BaseCompressor):
         code = re.sub(r'\bprivate\b', 'priv', code)
         code = re.sub(r'\bprotected\b', 'prot', code)
         code = re.sub(r'\bboolean\b', 'bool', code)
-        code = re.sub(r'\breturn\b', 'ret', code)
         code = re.sub(r'\bthis\.', '', code)
 
         # 6. Diamond operator instantiation

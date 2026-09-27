@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     # 3. Logic intact (not stubbed with ...)
     assert "total += i * 2" in compressed
-    assert "ret total" in compressed or "return total" in compressed
+    assert "return total" in compressed
     assert "..." not in compressed
 
     # 4. Boilerplate compressed
@@ -127,7 +127,7 @@ public class UserService {
 
     # 3. Logic intact
     assert "result += i * multiplier" in compressed
-    assert "ret result" in compressed or "return result" in compressed
+    assert "return result" in compressed
 
     # 4. Boilerplate compressed
     assert "pub class UserService" in compressed
@@ -240,7 +240,7 @@ int add(int a, int b) {
     compressed_c = c_comp.compress(c_code)
     assert "C standard library module" in compressed_c
     assert "Add two ints" in compressed_c
-    assert "ret a + b" in compressed_c or "return a + b" in compressed_c
+    assert "return a + b" in compressed_c
     assert "/* [guard UTILS_H] */ #pragma once" in compressed_c
     assert "#include <stdio.h, stdlib.h, string.h>" in compressed_c
 
@@ -276,7 +276,7 @@ func ProcessUser(ctx context.Context, id string) (string, error) {
     assert "business logic" in compressed
     assert "ProcessUser" in compressed
     assert "formatted := fmt.Sprintf" in compressed
-    assert "if err != nil { ret \"\", err }" in compressed or "if err != nil { return \"\", err }" in compressed
+    assert 'if err != nil { return "", err }' in compressed
     assert 'import ("fmt" "os" "context")' in compressed
     assert len(compressed) < len(code)
 

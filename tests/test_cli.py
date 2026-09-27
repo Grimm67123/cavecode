@@ -56,7 +56,7 @@ def test_cli_stats(tmp_path: Path):
     p.write_text("def f(x):\n    return x * 2\n", encoding="utf-8")
     result = runner.invoke(app, ["stats", str(p)])
     assert result.exit_code == 0
-    assert "Raw Tokens (approx.)" in result.output
+    assert "Estimated Raw Tokens (approx.)" in result.output
 
 
 def test_cli_init(tmp_path: Path):
@@ -94,14 +94,14 @@ def test_cli_read_single_file_on_the_fly(tmp_path: Path):
     # Ultra mode: prints signature and stubs
     res_ultra = runner.invoke(app, ["read", str(f), "-m", "ultra"])
     assert res_ultra.exit_code == 0
-    assert "fn compute" in res_ultra.output or "compute" in res_ultra.output
+    assert "def compute" in res_ultra.output or "compute" in res_ultra.output
     # Verify no file written to disk
     assert not (tmp_path / "service.cave.py").exists()
 
     # Lite mode: prints 100% full implementation logic
     res_lite = runner.invoke(app, ["read", str(f), "-m", "lite"])
     assert res_lite.exit_code == 0
-    assert "return x * 42" in res_lite.output or "ret x * 42" in res_lite.output
+    assert "return x * 42" in res_lite.output
     assert not (tmp_path / "service.cave.py").exists()
 
 

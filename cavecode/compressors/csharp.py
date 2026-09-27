@@ -38,17 +38,16 @@ class CSharpCompressor(BaseCompressor):
         code = re.sub(r'\binternal\b', 'intnl', code)
         code = re.sub(r'\breadonly\b', 'ro', code)
         code = re.sub(r'\bboolean\b', 'bool', code)
-        code = re.sub(r'\breturn\b', 'ret', code)
         code = re.sub(r'\bthis\.', '', code)
 
         # 5. Condense property getters/setters & expression bodies
         code = re.sub(
-            r'\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*set\s*\{[^}]*?\}\s*\}',
+            r'\{\s*get\s*\{[^}]*?return\s+([^;]+?);\s*\}\s*set\s*\{[^}]*?\}\s*\}',
             r'{ get => \1; set; }',
             code,
         )
         code = re.sub(
-            r'\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*\}',
+            r'\{\s*get\s*\{[^}]*?return\s+([^;]+?);\s*\}\s*\}',
             r'{ get => \1; }',
             code,
         )

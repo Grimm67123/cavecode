@@ -130,7 +130,7 @@ def read(
 ):
     """
     Read source file(s) or directory on the fly with AST compression, printed directly to stdout.
-    Zero disk modifications. Agents can run this instead of reading raw files to save tokens.
+    Zero disk modifications. Agents can run this instead of reading raw files to save estimated tokens.
     """
     if not paths:
         console.print("[bold red]No path specified.[/bold red]", file=sys.stderr)
@@ -235,7 +235,7 @@ def estimate(
     mode: str = typer.Option("ultra", "-m", "--mode", help="Compression mode: lite, medium, ultra"),
 ):
     """
-    Display approximate token metrics and compression potential without writing any files.
+    Display estimated token metrics and compression potential without writing any files.
     """
     print_banner()
     target = path.resolve()
@@ -268,7 +268,7 @@ def stats(
     mode: str = typer.Option("ultra", "-m", "--mode", help="Compression mode: lite, medium, ultra"),
 ):
     """
-    Display approximate token metrics and compression potential without writing any files (alias for estimate).
+    Display estimated token metrics and compression potential without writing any files (alias for estimate).
     """
     estimate(path=path, mode=mode)
 

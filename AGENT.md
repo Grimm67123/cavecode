@@ -11,8 +11,8 @@ To minimize context window usage, reduce token latency, and prevent token waste,
 1. **Read reference & dependency code via `cavecode read`**:
    When exploring the codebase, mapping architecture, or checking how external modules, classes, and functions are called, use `cavecode read` instead of reading large raw files:
    ```bash
-   cavecode read path/to/file.py -m ultra    # Signatures, types, classes (~80% – ~85%+ token savings)
-   cavecode read path/to/file.ts -m lite     # Full logic preserved for logic skims (~25% – ~30% token savings)
+   cavecode read path/to/file.py -m ultra    # Signatures, types, classes (~80% – ~85%+ estimated token savings)
+   cavecode read path/to/file.ts -m lite     # Full logic preserved for logic skims (~25% – ~30% estimated token savings)
    cavecode read src/ -m ultra               # Scan all files in a directory directly to stdout
    ```
    *`cavecode read` streams compressed code directly to stdout with zero disk modifications.*
@@ -43,11 +43,11 @@ To minimize context window usage, reduce token latency, and prevent token waste,
 
 Choose the compression tier using `--mode` or `-m` (default: `ultra`):
 
-| Mode | Token Savings | Logic & Structure | Recommended Agent Use Case |
+| Mode | Estimated Token Savings | Logic & Structure | Recommended Agent Use Case |
 | :--- | :---: | :--- | :--- |
-| **`ultra`** *(Default)* | **~80% – ~85%+** | **100% architectural and signature preservation.** Strips comments and docstrings; collapses function and method bodies to structural shells (`pass` / `{ ... }`). Keeps all class hierarchies, type annotations, and function definitions. | **Primary mode for agents.** Ideal for large repository scanning, architecture discovery, mapping dependencies, and checking API contracts/parameters of files you are not actively modifying. |
-| **`lite`** | **~5% – ~10%** | **100% of function bodies & logic preserved.** Removes docstrings and license blocks, normalizes indentation to 2 spaces, and condenses imports. | Skimming algorithms or internal data flow inside an external module when you need to understand how it works under the hood without burning full token overhead. |
-| **`medium`** | **~15% – ~20%** | **100% of function bodies preserved.** Uses compact keyword density (`fn`, `ret`, `pub`, `priv`, `const`), strips debug/info logging calls, and summarizes comments. | High-density reading across multiple interdependent files when you need a compact overview of logic. |
+| **`ultra`** *(Default)* | **~80% – ~85%+ (estimated)** | **100% architectural and signature preservation.** Strips comments and docstrings; collapses function and method bodies to structural shells (`pass` / `{ ... }`). Keeps all class hierarchies, type annotations, and function definitions. | **Primary mode for agents.** Ideal for large repository scanning, architecture discovery, mapping dependencies, and checking API contracts/parameters of files you are not actively modifying. |
+| **`lite`** | **~5% – ~10% (estimated)** | **100% of function bodies & logic preserved.** Removes docstrings and license blocks, normalizes indentation to 2 spaces, and condenses imports. | Skimming algorithms or internal data flow inside an external module when you need to understand how it works under the hood without burning full estimated token overhead. |
+| **`medium`** | **~15% – ~20% (estimated)** | **100% of function bodies preserved.** Uses compact keyword density (`pub`, `priv`, `const`), strips debug/info logging calls, and summarizes comments. | High-density reading across multiple interdependent files when you need a compact overview of logic. |
 
 ---
 
@@ -57,7 +57,7 @@ Choose the compression tier using `--mode` or `-m` (default: `ultra`):
 Reads source file(s) or directory on the fly with AST compression, printed directly to stdout. **Zero disk modifications.**
 
 ```bash
-# Read a single file in ultra mode (default: ~80%+ savings)
+# Read a single file in ultra mode (default: ~80%+ estimated savings)
 cavecode read path/to/file.py
 
 # Read a single file in lite mode (keeps full function implementations)
@@ -99,7 +99,7 @@ cavecode revert ./src
 ```
 
 ### `cavecode estimate` (Alias: `cavecode stats`)
-Calculates approximate token usage and potential savings without writing any files to disk.
+Calculates estimated token usage and potential savings without writing any files to disk.
 
 ```bash
 cavecode estimate path/to/file.rs -m ultra

@@ -44,7 +44,6 @@ class RustCompressor(BaseCompressor):
 
         # 7. Keywords
         code = re.sub(r'\bpub\(crate\)\b', 'pub', code)
-        code = re.sub(r'\breturn\b', 'ret', code)
 
         # 9. Inline small blocks
         code = self.inline_small_blocks(code, mode=m)

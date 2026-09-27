@@ -34,7 +34,7 @@ class PythonCompressor(BaseCompressor):
 
         # 4. Multiline def signatures collapse
         code = re.sub(
-            r'(?:async\s+)?(?:def|fn)\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:',
+            r'(?:async\s+)?def\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:',
             lambda match: re.sub(r'\s*\n\s*', ' ', match.group(0)),
             code,
         )
@@ -82,10 +82,6 @@ class PythonCompressor(BaseCompressor):
         code = re.sub(r'\btyping\.Set\b', 'set', code)
         code = re.sub(r'\btyping\.Tuple\b', 'tuple', code)
         code = re.sub(r'\btyping\.Any\b', 'any', code)
-
-        # 8. Keywords
-        code = re.sub(r'\breturn\b', 'ret', code)
-        code = re.sub(r'\bdef\b', 'fn', code)
         code = re.sub(r'if\s+__name__\s*==\s*[\'"]__main__[\'"]\s*:', 'if __main__:', code)
 
         # 9. Strip redundant 'pass'

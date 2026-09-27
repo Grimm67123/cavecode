@@ -73,10 +73,7 @@ class JavaScriptCompressor(BaseCompressor):
             code = re.sub(r'((?:exp\s+)?(?:interface|type)\s+[^{]+?)\{\s*\n([^{}]+?)\n\s*\}', collapse_iface, code)
 
         # 7. Type & keyword abbreviations
-        code = re.sub(r'\breturn\b', 'ret', code)
         code = re.sub(r'\bthis\.', '', code)
-        code = re.sub(r'\bfunction\b', 'fn', code)
-        code = re.sub(r'\bexport\s+default\s+function\b', 'exp def fn', code)
         code = re.sub(r'\bexport\s+default\b', 'exp def', code)
         code = re.sub(r'\bexport\b', 'exp', code)
         code = re.sub(r'\bpublic\b', 'pub', code)
@@ -86,7 +83,7 @@ class JavaScriptCompressor(BaseCompressor):
 
         # 8. Multiline signatures collapse (anchored fallback)
         code = re.sub(
-            r'^[ \t]*(?:static\s+|pub\s+|priv\s+|prot\s+|ro\s+|fn\s+|func\s+|async\s+)*[a-zA-Z0-9_*&<>, ]+\s+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?::\s*[^;{]+)?\s*\{',
+            r'^[ \t]*(?:static\s+|pub\s+|priv\s+|prot\s+|ro\s+|function\s+|func\s+|async\s+)*[a-zA-Z0-9_*&<>, ]+\s+(?!(?:if|while|for|switch|catch|return)\b)[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?::\s*[^;{]+)?\s*\{',
             lambda m: re.sub(r'\s*\n\s*', ' ', m.group(0)),
             code,
             flags=re.MULTILINE,

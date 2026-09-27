@@ -44,21 +44,21 @@ def print_stats_table(
 ):
     """Print comparative approximate token savings and safety metrics table."""
     summary_table = Table(
-        title="CaveCode Compression & Token Metrics",
+        title="CaveCode Compression & Estimated Token Metrics",
         show_header=True,
         header_style="bold magenta",
     )
-    summary_table.add_column("Metric", style="dim", width=26)
+    summary_table.add_column("Metric", style="dim", width=34)
     summary_table.add_column("Value", justify="right")
 
     summary_table.add_row("Processed Files", f"[bold green]{file_count}[/bold green]")
-    summary_table.add_row("Raw Tokens (approx.)", f"~{estimate.raw_approx_tokens:,}")
+    summary_table.add_row("Estimated Raw Tokens (approx.)", f"~{estimate.raw_approx_tokens:,}")
     summary_table.add_row(
-        "Compressed Tokens (approx.)",
+        "Estimated Compressed Tokens (approx.)",
         f"[bold cyan]~{estimate.compressed_approx_tokens:,}[/bold cyan]",
     )
     summary_table.add_row(
-        "Tokens Saved (approx.)",
+        "Estimated Tokens Saved (approx.)",
         f"[bold green]~{estimate.saved_approx_tokens:,}[/bold green]",
     )
     summary_table.add_row(
@@ -73,14 +73,14 @@ def print_stats_table(
 
     if estimate.model_estimates:
         arch_table = Table(
-            title="Approximate Tokens by Tokenizer Architecture",
+            title="Estimated Tokens by Tokenizer Architecture",
             show_header=True,
             header_style="bold green",
         )
         arch_table.add_column("Tokenizer Architecture", style="bold")
-        arch_table.add_column("Raw Load (approx.)", justify="right")
-        arch_table.add_column("Compressed Load (approx.)", justify="right")
-        arch_table.add_column("Savings (approx.)", justify="right", style="bold green")
+        arch_table.add_column("Estimated Raw Load (approx.)", justify="right")
+        arch_table.add_column("Estimated Compressed Load (approx.)", justify="right")
+        arch_table.add_column("Estimated Savings (approx.)", justify="right", style="bold green")
 
         for arch_name, data in estimate.model_estimates.items():
             saved = data["raw"] - data["compressed"]

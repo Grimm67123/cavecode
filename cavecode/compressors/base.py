@@ -65,9 +65,7 @@ class BaseCompressor(ABC):
     def telegraphic_comment(text: str, prefix: str = "// ") -> str:
         """Telegraphic comment condensing for medium mode."""
         if re.search(r'copy\w*|licensed under|all rights reserved|general public license|mit license|apache license', text, re.I):
-            m = re.search(r'copy\w*\s+(?:\(c\)\s*)?([0-9\-, ]+)?\s*([a-zA-Z0-9_\. ]+)', text, re.I)
-            owner = m.group(0).strip() if m else "Authors"
-            return f"{prefix}[License: {owner}]"
+            return ""
         if re.search(r'#(?:region|endregion)\b', text, re.I):
             return ""
         m_sect = re.search(r'[-=*~]{4,}\s*([a-zA-Z0-9_ ]+)\s*[-=*~]{4,}', text)
@@ -99,8 +97,6 @@ class BaseCompressor(ABC):
             (r'\b(?:please note that|note that|it should be noted that)\b', 'NOTE:'),
             (r'\b(?:as well as|in addition to)\b', '&'),
             (r'\b(?:for example|such as|e\.g\.)\b', 'eg'),
-            (r'\breturn(?:ing|s)?\b', 'ret'),
-            (r'\bfunction(?:s)?\b', 'fn'),
             (r'\bstring(?:s)?\b', 'str'),
             (r'\bboolean\b', 'bool'),
             (r'\bmessage(?:s)?\b', 'msg'),

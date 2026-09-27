@@ -1,12 +1,12 @@
 # CaveCode Showcase — all 9 languages, ultra → medium → lite
 
-> Same order-processing sample in each language. Generated with `cavecode read -m <mode>` (CLI v1.0.0). Directory totals: ultra ~83%, medium ~19%, lite ~8%. Per-file numbers vary by language idiom.
+> Same order-processing sample in each language. Generated with `cavecode read -m <mode>` (CLI v1.0.0). Directory totals: ultra ~83%, medium ~19%, lite ~8% (all estimated). Per-file numbers vary by language idiom.
 
-## Python (`order_service.py`) — raw ~2188 tokens
+## Python (`order_service.py`) — estimated raw ~2131 tokens
 
-- ultra: ~445 tokens (~79.7% saved)
-- medium: ~1796 tokens (~17.9% saved)
-- lite: ~2008 tokens (~8.2% saved)
+- ultra: ~445 tokens (estimated) (~79.1% saved)
+- medium: ~1796 tokens (estimated) (~15.7% saved)
+- lite: ~2008 tokens (estimated) (~5.8% saved)
 
 <details>
 <summary>ultra <code>order_service.py</code></summary>
@@ -36,29 +36,29 @@ class Order:
   created_at: str = ""
   status: str = "pending"
 class OrderValidator:
-  fn __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
+  def __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
   pass
-  fn validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
+  def validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
   pass
-  fn compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
+  def compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
   pass
-  fn reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
+  def reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
   pass
-  fn schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
+  def schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
   pass
-  fn apply_loyalty_credit(self, customer: Customer, total: float) -> float:
+  def apply_loyalty_credit(self, customer: Customer, total: float) -> float:
   pass
-  fn summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
+  def summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
   pass
-fn format_money(amount: float, currency: str = "USD") -> str:
+def format_money(amount: float, currency: str = "USD") -> str:
   pass
-fn is_valid_coupon(code: str) -> bool:
+def is_valid_coupon(code: str) -> bool:
   pass
-fn paginate_items(items, page_size=25):
+def paginate_items(items, page_size=25):
   pass
-fn retry_delays(attempts=5, base_ms=200, factor=2.0):
+def retry_delays(attempts=5, base_ms=200, factor=2.0):
   pass
-fn batch_totals(orders, tax_rate=0.08):
+def batch_totals(orders, tax_rate=0.08):
   pass
 ```
 </details>
@@ -67,6 +67,7 @@ fn batch_totals(orders, tax_rate=0.08):
 <summary>medium <code>order_service.py</code></summary>
 
 ```python
+# This file part example order processing subsystem.
 """Order processing subsystem example e-commerce platform."""
 import os, logging, datetime
 from dataclasses import dataclass, field
@@ -96,13 +97,13 @@ class Order:
   status: str = "pending"
 class OrderValidator:
   """Validates incoming orders against business rules and inventory."""
-  fn __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
+  def __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
     self.db_url = db_url
     self.timeout = timeout
     self.strict = strict
     self._rules_cache: Dict[str, str] = {}
-  fn validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
-    """Validate order and ret list human-readable violations."""
+  def validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
+    """Validate order and return list human-readable violations."""
 # Record validation attempt audit trail and debugging purposes
     print("Validating order for...", customer.email)
     violations: List[str] = []
@@ -131,8 +132,8 @@ class OrderValidator:
       print("Verifying coupon cod...")
       if len(coupon_code) < 6 or len(coupon_code) > 16:
         violations.append("Coupon code length i...")
-    ret violations
-  fn compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
+    return violations
+  def compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
     """Compute subtotal, tax, shipping, and grand total order."""
 # Detailed computation trace helps finance reconcile rounding issues
     print("Computing totals for...", order.id, tax_rate)
@@ -147,41 +148,41 @@ class OrderValidator:
     shipping = 0.0 if subtotal > 150.0 else shipping_flat
     if shipping == 0.0:
     total = round(subtotal + tax + shipping, 2)
-    ret {"subtotal": round(subtotal, 2), "tax": tax, "shipping": shipping, "total": total}
-  fn reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
+    return {"subtotal": round(subtotal, 2), "tax": tax, "shipping": shipping, "total": total}
+  def reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
     """Reserve inventory each line item preferred warehouse."""
 # Inventory reservation must precede payment capture to avoid oversell
     print("Inventory reservatio...", order.id)
     if not order.items:
       print("Nothing to reserve f...")
-      ret False
+      return False
     for item in order.items:
 # Each reservation idempotent via sku plus order identifier
       print("Reserving %d units o...", item.quantity, item.sku, order.id)
       if item.quantity > 1000:
         print("Large quantity reser...")
-        ret False
+        return False
     print("All line items reser...")
-    ret True
-  fn schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
-    """Schedule shipment and ret tracking identifier when available."""
+    return True
+  def schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
+    """Schedule shipment and return tracking identifier when available."""
 # Shipment scheduling consults carrier capacity and holiday blackouts
-    if not order.items: ret None
+    if not order.items: return None
     method = "expedited-air-freigh..." if expedited else "standard-ground-shipping"
     print("Selected shipment me...", method, order.id)
     tracking = f"{carrier.upper()}-TR..."
     print("Generated tracking i...", tracking)
-    ret tracking
-  fn apply_loyalty_credit(self, customer: Customer, total: float) -> float:
+    return tracking
+  def apply_loyalty_credit(self, customer: Customer, total: float) -> float:
     """Apply loyalty tier credit against order total where eligible."""
 # Loyalty credits funded quarterly retention marketing budget
     print("Evaluating loyalty c...", customer.loyalty_tier)
     if customer.loyalty_tier == "gold":
       print("Applying gold tier r...")
-      ret max(0.0, total - 25.0)
-    if customer.loyalty_tier == "silver": ret max(0.0, total - 10.0)
-    ret total
-  fn summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
+      return max(0.0, total - 25.0)
+    if customer.loyalty_tier == "silver": return max(0.0, total - 10.0)
+    return total
+  def summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
     """Build audit-friendly summary str map compliance logging."""
 # Compliance requires stable textual snapshot every processed order
     lines = [
@@ -193,35 +194,35 @@ class OrderValidator:
       print("Appending audit line...", item.sku)
       lines.append(f"SKU {item.sku} x{ite...")
     print("Audit snapshot assem...", len(lines))
-    ret {"summary": " | ".join(lines)}
-fn format_money(amount: float, currency: str = "USD") -> str:
+    return {"summary": " | ".join(lines)}
+def format_money(amount: float, currency: str = "USD") -> str:
   """Format monetary amount currency code display purposes."""
 # Centralized formatting keeps receipts consistent across all storefronts
-  ret f"{currency} {amount:,..."
-fn is_valid_coupon(code: str) -> bool:
+  return f"{currency} {amount:,..."
+def is_valid_coupon(code: str) -> bool:
   """Check whether coupon str matches campaign format rules."""
 # Campaign codes alphanumeric and between six and sixteen characters
   print("Checking coupon form...", len(code))
-  if not code or not code.isalnum(): ret False
+  if not code or not code.isalnum(): return False
   if len(code) < 6 or len(code) > 16:
     print("Coupon rejected due...")
-    ret False
-  ret True
-fn paginate_items(items, page_size=25):
+    return False
+  return True
+def paginate_items(items, page_size=25):
   pages = []
   for i in range(0, len(items), page_size):
     chunk = items[i:i + page_size]
     pages.append([c for c in chunk if c is not None])
   total = sum(len(p) for p in pages)
-  ret {"pages": pages, "total": total, "page_size": page_size}
-fn retry_delays(attempts=5, base_ms=200, factor=2.0):
+  return {"pages": pages, "total": total, "page_size": page_size}
+def retry_delays(attempts=5, base_ms=200, factor=2.0):
   delays = []
   wait = float(base_ms)
   for _ in range(attempts):
     delays.append(int(wait))
     wait = wait * factor + 15
-  ret delays
-fn batch_totals(orders, tax_rate=0.08):
+  return delays
+def batch_totals(orders, tax_rate=0.08):
   results = []
   for o in orders:
     sub = 0.0
@@ -231,7 +232,7 @@ fn batch_totals(orders, tax_rate=0.08):
     tax = round(sub * tax_rate, 2)
     ship = 0.0 if sub > 150.0 else 5.99
     results.append({"sub": round(sub, 2), "tax": tax, "total": round(sub + tax + ship, 2)})
-  ret results
+  return results
 ```
 </details>
 
@@ -239,6 +240,7 @@ fn batch_totals(orders, tax_rate=0.08):
 <summary>lite <code>order_service.py</code></summary>
 
 ```python
+# This file part example order processing subsystem.
 """Order processing subsystem example e-commerce platform."""
 import os, logging, datetime
 from dataclasses import dataclass, field
@@ -268,13 +270,13 @@ class Order:
   status: str = "pending"
 class OrderValidator:
   """Validates incoming orders against business rules and inventory."""
-  fn __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
+  def __init__(self, db_url: str, timeout: int = 30, strict: bool = True):
     self.db_url = db_url
     self.timeout = timeout
     self.strict = strict
     self._rules_cache: Dict[str, str] = {}
-  fn validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
-    """Validate order and ret list human-readable violations."""
+  def validate_order(self, order: Order, customer: Customer, coupon_code: str? = None, gift_wrap: bool = False) -> List[str]:
+    """Validate order and return list human-readable violations."""
 # Record validation attempt audit trail and debugging purposes
     print("Validating order for customer %s", customer.email)
     violations: List[str] = []
@@ -305,8 +307,8 @@ class OrderValidator:
       print("Verifying coupon code against active campaign rules")
       if len(coupon_code) < 6 or len(coupon_code) > 16:
         violations.append("Coupon code length is outside the accepted campaign format range")
-    ret violations
-  fn compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
+    return violations
+  def compute_totals(self, order: Order, tax_rate: float = 0.08, shipping_flat: float = 5.99) -> Dict[str, float]:
     """Compute subtotal, tax, shipping, and grand total order."""
 # Detailed computation trace helps finance reconcile rounding issues
     print("Computing totals for order %s with tax rate %s", order.id, tax_rate)
@@ -321,41 +323,41 @@ class OrderValidator:
     shipping = 0.0 if subtotal > 150.0 else shipping_flat
     if shipping == 0.0:
     total = round(subtotal + tax + shipping, 2)
-    ret {"subtotal": round(subtotal, 2), "tax": tax, "shipping": shipping, "total": total}
-  fn reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
+    return {"subtotal": round(subtotal, 2), "tax": tax, "shipping": shipping, "total": total}
+  def reserve_inventory(self, order: Order, warehouse: str = "us-east-1") -> bool:
     """Reserve inventory each line item preferred warehouse."""
 # Inventory reservation must precede payment capture to avoid oversell
     print("Inventory reservation started for order %s", order.id)
     if not order.items:
       print("Nothing to reserve for empty order payload")
-      ret False
+      return False
     for item in order.items:
 # Each reservation idempotent via sku plus order identifier
       print("Reserving %d units of sku %s for order %d", item.quantity, item.sku, order.id)
       if item.quantity > 1000:
         print("Large quantity reservation requires manual approval workflow")
-        ret False
+        return False
     print("All line items reserved successfully without contention")
-    ret True
-  fn schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
-    """Schedule shipment and ret tracking identifier when available."""
+    return True
+  def schedule_shipment(self, order: Order, carrier: str = "ups", expedited: bool = False) -> str?:
+    """Schedule shipment and return tracking identifier when available."""
 # Shipment scheduling consults carrier capacity and holiday blackouts
-    if not order.items: ret None
+    if not order.items: return None
     method = "expedited-air-freight-priority" if expedited else "standard-ground-shipping"
     print("Selected shipment method %s for order %s", method, order.id)
     tracking = f"{carrier.upper()}-TRACK-{order.id:08d}-EXAMPLE-LONG-IDENTIFIER"
     print("Generated tracking identifier %s for customer notification", tracking)
-    ret tracking
-  fn apply_loyalty_credit(self, customer: Customer, total: float) -> float:
+    return tracking
+  def apply_loyalty_credit(self, customer: Customer, total: float) -> float:
     """Apply loyalty tier credit against order total where eligible."""
 # Loyalty credits funded quarterly retention marketing budget
     print("Evaluating loyalty credit for tier %s", customer.loyalty_tier)
     if customer.loyalty_tier == "gold":
       print("Applying gold tier retention credit to order total")
-      ret max(0.0, total - 25.0)
-    if customer.loyalty_tier == "silver": ret max(0.0, total - 10.0)
-    ret total
-  fn summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
+      return max(0.0, total - 25.0)
+    if customer.loyalty_tier == "silver": return max(0.0, total - 10.0)
+    return total
+  def summarize_for_audit(self, order: Order, customer: Customer) -> Dict[str, str]:
     """Build audit-friendly summary str map compliance logging."""
 # Compliance requires stable textual snapshot every processed order
     lines = [
@@ -367,35 +369,35 @@ class OrderValidator:
       print("Appending audit line for sku %s", item.sku)
       lines.append(f"SKU {item.sku} x{item.quantity} @ {item.unit_price:.2f} with {item.discount_pct}% off")
     print("Audit snapshot assembled with %d detail lines", len(lines))
-    ret {"summary": " | ".join(lines)}
-fn format_money(amount: float, currency: str = "USD") -> str:
+    return {"summary": " | ".join(lines)}
+def format_money(amount: float, currency: str = "USD") -> str:
   """Format monetary amount currency code display purposes."""
 # Centralized formatting keeps receipts consistent across all storefronts
-  ret f"{currency} {amount:,.2f} (formatted for customer receipt display)"
-fn is_valid_coupon(code: str) -> bool:
+  return f"{currency} {amount:,.2f} (formatted for customer receipt display)"
+def is_valid_coupon(code: str) -> bool:
   """Check whether coupon str matches campaign format rules."""
 # Campaign codes alphanumeric and between six and sixteen characters
   print("Checking coupon format for code of length %d", len(code))
-  if not code or not code.isalnum(): ret False
+  if not code or not code.isalnum(): return False
   if len(code) < 6 or len(code) > 16:
     print("Coupon rejected due to invalid length constraints")
-    ret False
-  ret True
-fn paginate_items(items, page_size=25):
+    return False
+  return True
+def paginate_items(items, page_size=25):
   pages = []
   for i in range(0, len(items), page_size):
     chunk = items[i:i + page_size]
     pages.append([c for c in chunk if c is not None])
   total = sum(len(p) for p in pages)
-  ret {"pages": pages, "total": total, "page_size": page_size}
-fn retry_delays(attempts=5, base_ms=200, factor=2.0):
+  return {"pages": pages, "total": total, "page_size": page_size}
+def retry_delays(attempts=5, base_ms=200, factor=2.0):
   delays = []
   wait = float(base_ms)
   for _ in range(attempts):
     delays.append(int(wait))
     wait = wait * factor + 15
-  ret delays
-fn batch_totals(orders, tax_rate=0.08):
+  return delays
+def batch_totals(orders, tax_rate=0.08):
   results = []
   for o in orders:
     sub = 0.0
@@ -405,7 +407,7 @@ fn batch_totals(orders, tax_rate=0.08):
     tax = round(sub * tax_rate, 2)
     ship = 0.0 if sub > 150.0 else 5.99
     results.append({"sub": round(sub, 2), "tax": tax, "total": round(sub + tax + ship, 2)})
-  ret results
+  return results
 ```
 </details>
 
@@ -636,11 +638,11 @@ def batch_totals(orders, tax_rate=0.08):
 ```
 </details>
 
-## JavaScript (`order_client.js`) — raw ~1770 tokens
+## JavaScript (`order_client.js`) — estimated raw ~1735 tokens
 
-- ultra: ~184 tokens (~89.6% saved)
-- medium: ~1478 tokens (~16.5% saved)
-- lite: ~1630 tokens (~7.9% saved)
+- ultra: ~184 tokens (estimated) (~89.4% saved)
+- medium: ~1459 tokens (estimated) (~15.9% saved)
+- lite: ~1611 tokens (estimated) (~7.1% saved)
 
 <details>
 <summary>ultra <code>order_client.js</code></summary>
@@ -657,8 +659,8 @@ applyLoyaltyCredit(customer, total) { ... }
 summarizeForAudit(order, customer) { ... }
 hashOrderPayload(order) { ... }
 }
-exp fn formatMoney(amount, currency = "USD") { ... }
-exp fn isValidCoupon(code) { ... }
+exp function formatMoney(amount, currency = "USD") { ... }
+exp function isValidCoupon(code) { ... }
 ```
 </details>
 
@@ -677,7 +679,7 @@ exp class OrderValidator extends EventEmitter {
   strict = strict
   rulesCache = new Map()
   }
-// Validate order and ret human-readable violations
+// Validate order and return human-readable violations
   async validateOrder(order, customer, couponCode = null, giftWrap = false) {
   console.log(`Trace validation context for customer ${customer.email} with giftWrap=${giftWrap}`)
   const violations = []
@@ -701,7 +703,7 @@ exp class OrderValidator extends EventEmitter {
   }
   console.log(`Validation complete with ${violations.length} violations recorded`)
   emit("validated", { orderId: order.id, count: violations.length })
-  ret violations
+  return violations
   }
 // Compute subtotal, tax, shipping and grand total checkout display
   async computeTotals(order, taxRate = 0.08, shippingFlat = 5.99) {
@@ -719,36 +721,36 @@ exp class OrderValidator extends EventEmitter {
   if (shipping === 0) { }
   const total = Math.round((subtotal + tax + shipping) * 100) / 100
   console.log(`Grand total computed as ${total} for downstream payment capture`)
-  ret { subtotal, tax, shipping, total }
+  return { subtotal, tax, shipping, total }
   }
 // Reserve inventory preferred warehouse before payment capture
   async reserveInventory(order, warehouse = "us-east-1") {
   console.log(`Reserving inventory in warehouse ${warehouse} for order ${order.id}`)
-  if (!order.items || order.items.length === 0) { ret false; }
+  if (!order.items || order.items.length === 0) { return false; }
   for (const item of order.items) {
 // Each reservation idempotent via sku plus order identifier key
   console.log(`Reserving ${item.quantity} units of sku ${item.sku} for order ${order.id}`)
-  if (item.quantity > 1000) { console.log("Large quantity reser..."); ret false }
+  if (item.quantity > 1000) { console.log("Large quantity reser..."); return false }
   await axios.post(`${dbUrl}/reserve`, { sku: item.sku, qty: item.quantity }, { timeout: timeout })
   }
-  ret true
+  return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   async scheduleShipment(order, carrier = "ups", expedited = false) {
-  if (!order.items || order.items.length === 0) { ret null; }
+  if (!order.items || order.items.length === 0) { return null; }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const method = expedited ? "expedited-air-freigh..." : "standard-ground-shipping"
   console.log(`Selected shipment method ${method} for order ${order.id} delivery`)
   const tracking = `${carrier.toUpperCase()}-TRACK-${String(order.id).padStart(8, "0")}-EXAMPLE-LONG-IDENTIFIER`
   console.log(`Generated tracking identifier ${tracking} for customer notification email`)
-  ret tracking
+  return tracking
   }
 // Apply loyalty tier credit against order total where eligible
   applyLoyaltyCredit(customer, total) {
   console.log(`Evaluating loyalty credit for membership tier ${customer.tier}`)
-  if (customer.tier === "gold") { console.log("Applying gold tier r..."); ret Math.max(0, total - 25) }
-  if (customer.tier === "silver") { console.log("Applying silver tier..."); ret Math.max(0, total - 10) }
-  ret total
+  if (customer.tier === "gold") { console.log("Applying gold tier r..."); return Math.max(0, total - 25) }
+  if (customer.tier === "silver") { console.log("Applying silver tier..."); return Math.max(0, total - 10) }
+  return total
   }
 // Build audit-friendly summary str compliance record keeping
   summarizeForAudit(order, customer) {
@@ -760,27 +762,27 @@ exp class OrderValidator extends EventEmitter {
   lines.push(`SKU ${item.sku} x${item.quantity} @ ${item.unitPrice} with ${item.discountPct}% discount applied`)
   }
   console.log(`Audit snapshot assembled with ${lines.length} detail lines total`)
-  ret { summary: lines.join(" | ") }
+  return { summary: lines.join(" | ") }
   }
 // Hash order payload idempotency deduplication across retry storms
   hashOrderPayload(order) {
   console.log(`Hashing order payload for idempotency key generation workflow`)
   constdist = JSON.stringify(order)
   const h = crypto.createHash("sha256").update(JSON.string..."hex")
-  ret h
+  return h
   }
 }
 // Format monetary amount currency code receipt display purposes
-exp fn formatMoney(amount, currency = "USD") {
+exp function formatMoney(amount, currency = "USD") {
   console.log(`Formatting monetary amount ${amount} in currency ${currency} for receipt`)
-  ret `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
+  return `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
 }
 // Check whether coupon str matches active campaign format requirements
-exp fn isValidCoupon(code) {
+exp function isValidCoupon(code) {
   console.log(`Checking coupon format for code of length ${code.length} characters`)
-  if (!code || !/^[a-zA-Z0-9]+$/.test(code)) ret false
-  if (code.length < 6 || code.length > 16) { ret false; }
-  ret true
+  if (!code || !/^[a-zA-Z0-9]+$/.test(code)) return false
+  if (code.length < 6 || code.length > 16) { return false; }
+  return true
 }
 ```
 </details>
@@ -800,7 +802,7 @@ exp class OrderValidator extends EventEmitter {
   strict = strict
   rulesCache = new Map()
   }
-// Validate order and ret human-readable violations
+// Validate order and return human-readable violations
   async validateOrder(order, customer, couponCode = null, giftWrap = false) {
   console.log(`Trace validation context for customer ${customer.email} with giftWrap=${giftWrap}`)
   console.debug("tracing intermediate pipeline state marker")
@@ -842,7 +844,7 @@ exp class OrderValidator extends EventEmitter {
   console.log(`Validation complete with ${violations.length} violations recorded`)
   console.debug("tracing intermediate pipeline state marker")
   emit("validated", { orderId: order.id, count: violations.length })
-  ret violations
+  return violations
   }
 // Compute subtotal, tax, shipping and grand total checkout display
   async computeTotals(order, taxRate = 0.08, shippingFlat = 5.99) {
@@ -863,50 +865,50 @@ exp class OrderValidator extends EventEmitter {
   const total = Math.round((subtotal + tax + shipping) * 100) / 100
   console.log(`Grand total computed as ${total} for downstream payment capture`)
   console.debug("tracing intermediate pipeline state marker")
-  ret { subtotal, tax, shipping, total }
+  return { subtotal, tax, shipping, total }
   }
 // Reserve inventory preferred warehouse before payment capture
   async reserveInventory(order, warehouse = "us-east-1") {
   console.log(`Reserving inventory in warehouse ${warehouse} for order ${order.id}`)
   console.debug("tracing intermediate pipeline state marker")
   if (!order.items || order.items.length === 0) {
-  ret false
+  return false
   }
   for (const item of order.items) {
 // Each reservation idempotent via sku plus order identifier key
   console.log(`Reserving ${item.quantity} units of sku ${item.sku} for order ${order.id}`)
   if (item.quantity > 1000) {
     console.log("Large quantity reservation requires manual approval workflow step")
-    ret false
+    return false
   }
   await axios.post(`${dbUrl}/reserve`, { sku: item.sku, qty: item.quantity }, { timeout: timeout })
   }
-  ret true
+  return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   async scheduleShipment(order, carrier = "ups", expedited = false) {
   if (!order.items || order.items.length === 0) {
-  ret null
+  return null
   }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const method = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping"
   console.log(`Selected shipment method ${method} for order ${order.id} delivery`)
   const tracking = `${carrier.toUpperCase()}-TRACK-${String(order.id).padStart(8, "0")}-EXAMPLE-LONG-IDENTIFIER`
   console.log(`Generated tracking identifier ${tracking} for customer notification email`)
-  ret tracking
+  return tracking
   }
 // Apply loyalty tier credit against order total where eligible
   applyLoyaltyCredit(customer, total) {
   console.log(`Evaluating loyalty credit for membership tier ${customer.tier}`)
   if (customer.tier === "gold") {
   console.log("Applying gold tier retention marketing credit to order total")
-  ret Math.max(0, total - 25)
+  return Math.max(0, total - 25)
   }
   if (customer.tier === "silver") {
   console.log("Applying silver tier retention marketing credit to order total")
-  ret Math.max(0, total - 10)
+  return Math.max(0, total - 10)
   }
-  ret total
+  return total
   }
 // Build audit-friendly summary str compliance record keeping
   summarizeForAudit(order, customer) {
@@ -918,29 +920,29 @@ exp class OrderValidator extends EventEmitter {
   lines.push(`SKU ${item.sku} x${item.quantity} @ ${item.unitPrice} with ${item.discountPct}% discount applied`)
   }
   console.log(`Audit snapshot assembled with ${lines.length} detail lines total`)
-  ret { summary: lines.join(" | ") }
+  return { summary: lines.join(" | ") }
   }
 // Hash order payload idempotency deduplication across retry storms
   hashOrderPayload(order) {
   console.log(`Hashing order payload for idempotency key generation workflow`)
   constdist = JSON.stringify(order)
   const h = crypto.createHash("sha256").update(JSON.stringify(order)).digest("hex")
-  ret h
+  return h
   }
 }
 // Format monetary amount currency code receipt display purposes
-exp fn formatMoney(amount, currency = "USD") {
+exp function formatMoney(amount, currency = "USD") {
   console.log(`Formatting monetary amount ${amount} in currency ${currency} for receipt`)
-  ret `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
+  return `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
 }
 // Check whether coupon str matches active campaign format requirements
-exp fn isValidCoupon(code) {
+exp function isValidCoupon(code) {
   console.log(`Checking coupon format for code of length ${code.length} characters`)
-  if (!code || !/^[a-zA-Z0-9]+$/.test(code)) ret false
+  if (!code || !/^[a-zA-Z0-9]+$/.test(code)) return false
   if (code.length < 6 || code.length > 16) {
-  ret false
+  return false
   }
-  ret true
+  return true
 }
 ```
 </details>
@@ -1127,11 +1129,11 @@ export function isValidCoupon(code) {
 ```
 </details>
 
-## TypeScript (`order_service.ts`) — raw ~1878 tokens
+## TypeScript (`order_service.ts`) — estimated raw ~1843 tokens
 
-- ultra: ~404 tokens (~78.5% saved)
-- medium: ~1618 tokens (~13.8% saved)
-- lite: ~1766 tokens (~6.0% saved)
+- ultra: ~404 tokens (estimated) (~78.1% saved)
+- medium: ~1600 tokens (estimated) (~13.2% saved)
+- lite: ~1748 tokens (estimated) (~5.2% saved)
 
 <details>
 <summary>ultra <code>order_service.ts</code></summary>
@@ -1152,11 +1154,11 @@ exp class OrderValidator {
 listOrders(filter: CouponCheck = {}): Observable<Order[]> { ... }
 applyLoyaltyCredit(customer: Customer, total: num): num { ... }
 }
-exp fn formatMoney(amount: num, currency = "USD"): str { ... }
-exp fn isValidEmail(value: str): bool { ... }
-exp fn paginateIds(ids: num[], pageSize = 25): num[][] { ... }
-exp fn retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] { ... }
-exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] { ... }
+exp function formatMoney(amount: num, currency = "USD"): str { ... }
+exp function isValidEmail(value: str): bool { ... }
+exp function paginateIds(ids: num[], pageSize = 25): num[][] { ... }
+exp function retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] { ... }
+exp function batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] { ... }
 ```
 </details>
 
@@ -1175,7 +1177,7 @@ exp type CouponCheck =  { code?: str; giftWrap?: bool }
 exp class OrderValidator {
   priv rulesCache = new Map<string, string>()
   constructor(priv dbUrl: str, priv timeout = 5000, priv strict = true) {}
-// Validate order and ret human-readable violation msg
+// Validate order and return human-readable violation msg
   async validateOrder(order: Order, customer: Customer, coupon: CouponCheck = {}): Promise<string[]> {
   console.log(`Starting validation for order ${order.id} in strict mode`)
   const violations: str[] = []
@@ -1200,7 +1202,7 @@ exp class OrderValidator {
   console.log("Verifying coupon cod...")
   if (coupon.code.length < 6 || coupon.code.length > 16) { violations.push("Coupon code length i...") }
   }
-  ret violations
+  return violations
   }
 // Compute subtotal, tax, shipping and grand total checkout display
   async computeTotals(order: Order, taxRate = 0.08, shippingFlat = 5.99): Promise<{ subtotal: num; tax: num; shipping: num; total: num }> {
@@ -1217,57 +1219,57 @@ exp class OrderValidator {
   const shipping = subtotal > 150 ? 0 : shippingFlat
   if (shipping === 0) { console.log("Applying free shippi..."); }
   const total = Math.round((subtotal + tax + shipping) * 100) / 100
-  ret { subtotal, tax, shipping, total }
+  return { subtotal, tax, shipping, total }
   }
 // Reserve inventory preferred warehouse before payment capture
   async reserveInventory(order: Order, warehouse = "us-east-1"): Promise<bool> {
   console.log(`Trace inventory reservation workflow for audit compliance purposes`)
-  if (!order.items || order.items.length === 0) { console.log("Nothing to reserve f..."); ret false }
+  if (!order.items || order.items.length === 0) { console.log("Nothing to reserve f..."); return false }
   for (const item of order.items) {
 // Each reservation idempotent via sku plus order identifier key
-  if (item.quantity > 1000) { ret false; }
+  if (item.quantity > 1000) { return false; }
   }
-  ret true
+  return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   async scheduleShipment(order: Order, carrier = "ups", expedited = false): Promise<string?> {
-  if (!order.items || order.items.length === 0) { ret null; }
+  if (!order.items || order.items.length === 0) { return null; }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const method: str = expedited ? "expedited-air-freigh..." : "standard-ground-shipping"
   console.log(`Selected shipment method ${method} for order ${order.id} delivery flow`)
   const tracking: str = `${carrier.toUpperCase()}-TRACK-${String(order.id).padStart(8, "0")}-EXAMPLE-LONG-IDENTIFIER`
   console.log(`Generated tracking identifier ${tracking} for customer notification email`)
-  ret tracking
+  return tracking
   }
 // List order summaries observable stream dashboard rendering
-  listOrders(filter: CouponCheck = {}): Observable<Order[]> { ret of([]) }
+  listOrders(filter: CouponCheck = {}): Observable<Order[]> { return of([]) }
 // Apply loyalty tier credit against order total where eligible
   applyLoyaltyCredit(customer: Customer, total: num): num {
-  if (customer.tier === "gold") { ret Math.max(0, total - 25); }
+  if (customer.tier === "gold") { return Math.max(0, total - 25); }
   console.log("No loyalty credit av...")
-  ret total
+  return total
   }
 }
 // Format monetary amount currency code receipt display purposes
-exp fn formatMoney(amount: num, currency = "USD"): str {
-  ret `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
+exp function formatMoney(amount: num, currency = "USD"): str {
+  return `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
 }
 // Check whether str matches campaign coupon format requirements
-exp fn isValidEmail(value: str): bool {
-  ret /^[a-zA-Z0-9]{6,16}$/.test(value)
+exp function isValidEmail(value: str): bool {
+  return /^[a-zA-Z0-9]{6,16}$/.test(value)
 }
-exp fn paginateIds(ids: num[], pageSize = 25): num[][] {
+exp function paginateIds(ids: num[], pageSize = 25): num[][] {
   const pages: num[][] = []
   for (let i = 0; i < ids.length; i += pageSize) { const chunk = ids.slice(i, i + pageSize); pages.push(chunk.filter((x) => x > 0)) }
-  ret pages
+  return pages
 }
-exp fn retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] {
+exp function retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] {
   const delays: num[] = []
   let wait = baseMs
   for (let i = 0; i < attempts; i++) { delays.push(Math.round(wait)); wait = wait * factor + 15 }
-  ret delays
+  return delays
 }
-exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] {
+exp function batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] {
   const out: { sub: num; tax: num; total: num }[] = []
   for (const o of orders) {
   let sub = 0
@@ -1276,7 +1278,7 @@ exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], ta
   const ship = sub > 150 ? 0 : 5.99
   out.push({ sub: Math.round(sub * 100) / 100, tax, total: Math.round((sub + tax + ship) * 100) / 100 })
   }
-  ret out
+  return out
 }
 ```
 </details>
@@ -1296,7 +1298,7 @@ exp type CouponCheck =  { code?: str; giftWrap?: bool }
 exp class OrderValidator {
   priv rulesCache = new Map<string, string>()
   constructor(priv dbUrl: str, priv timeout = 5000, priv strict = true) {}
-// Validate order and ret human-readable violation msg
+// Validate order and return human-readable violation msg
   async validateOrder(order: Order, customer: Customer, coupon: CouponCheck = {}): Promise<string[]> {
   console.log(`Starting validation for order ${order.id} in strict mode`)
   console.debug("tracing intermediate pipeline state marker")
@@ -1339,7 +1341,7 @@ exp class OrderValidator {
     violations.push("Coupon code length is outside the accepted campaign format range")
   }
   }
-  ret violations
+  return violations
   }
 // Compute subtotal, tax, shipping and grand total checkout display
   async computeTotals(order: Order, taxRate = 0.08, shippingFlat = 5.99): Promise<{ subtotal: num; tax: num; shipping: num; total: num }> {
@@ -1359,74 +1361,74 @@ exp class OrderValidator {
   console.log("Applying free shipping incentive for high value order total amount")
   }
   const total = Math.round((subtotal + tax + shipping) * 100) / 100
-  ret { subtotal, tax, shipping, total }
+  return { subtotal, tax, shipping, total }
   }
 // Reserve inventory preferred warehouse before payment capture
   async reserveInventory(order: Order, warehouse = "us-east-1"): Promise<bool> {
   console.log(`Trace inventory reservation workflow for audit compliance purposes`)
   if (!order.items || order.items.length === 0) {
   console.log("Nothing to reserve for empty order payload received from client")
-  ret false
+  return false
   }
   for (const item of order.items) {
 // Each reservation idempotent via sku plus order identifier key
   if (item.quantity > 1000) {
-    ret false
+    return false
   }
   }
-  ret true
+  return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   async scheduleShipment(order: Order, carrier = "ups", expedited = false): Promise<string?> {
   if (!order.items || order.items.length === 0) {
-  ret null
+  return null
   }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const method: str = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping"
   console.log(`Selected shipment method ${method} for order ${order.id} delivery flow`)
   const tracking: str = `${carrier.toUpperCase()}-TRACK-${String(order.id).padStart(8, "0")}-EXAMPLE-LONG-IDENTIFIER`
   console.log(`Generated tracking identifier ${tracking} for customer notification email`)
-  ret tracking
+  return tracking
   }
 // List order summaries observable stream dashboard rendering
   listOrders(filter: CouponCheck = {}): Observable<Order[]> {
-  ret of([])
+  return of([])
   }
 // Apply loyalty tier credit against order total where eligible
   applyLoyaltyCredit(customer: Customer, total: num): num {
   if (customer.tier === "gold") {
-  ret Math.max(0, total - 25)
+  return Math.max(0, total - 25)
   }
   console.log("No loyalty credit available for standard tier customer accounts")
-  ret total
+  return total
   }
 }
 // Format monetary amount currency code receipt display purposes
-exp fn formatMoney(amount: num, currency = "USD"): str {
-  ret `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
+exp function formatMoney(amount: num, currency = "USD"): str {
+  return `${currency} ${amount.toFixed(2)} (formatted for customer receipt display)`
 }
 // Check whether str matches campaign coupon format requirements
-exp fn isValidEmail(value: str): bool {
-  ret /^[a-zA-Z0-9]{6,16}$/.test(value)
+exp function isValidEmail(value: str): bool {
+  return /^[a-zA-Z0-9]{6,16}$/.test(value)
 }
-exp fn paginateIds(ids: num[], pageSize = 25): num[][] {
+exp function paginateIds(ids: num[], pageSize = 25): num[][] {
   const pages: num[][] = []
   for (let i = 0; i < ids.length; i += pageSize) {
   const chunk = ids.slice(i, i + pageSize)
   pages.push(chunk.filter((x) => x > 0))
   }
-  ret pages
+  return pages
 }
-exp fn retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] {
+exp function retryDelays(attempts = 5, baseMs = 200, factor = 2): num[] {
   const delays: num[] = []
   let wait = baseMs
   for (let i = 0; i < attempts; i++) {
   delays.push(Math.round(wait))
   wait = wait * factor + 15
   }
-  ret delays
+  return delays
 }
-exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] {
+exp function batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], taxRate = 0.08): { sub: num; tax: num; total: num }[] {
   const out: { sub: num; tax: num; total: num }[] = []
   for (const o of orders) {
   let sub = 0
@@ -1438,7 +1440,7 @@ exp fn batchTotals(orders: { items: { qty: num; price: num; disc?: num } }[], ta
   const ship = sub > 150 ? 0 : 5.99
   out.push({ sub: Math.round(sub * 100) / 100, tax, total: Math.round((sub + tax + ship) * 100) / 100 })
   }
-  ret out
+  return out
 }
 ```
 </details>
@@ -1647,11 +1649,11 @@ export function batchTotals(orders: { items: { qty: number; price: number; disc?
 ```
 </details>
 
-## Go (`order_service.go`) — raw ~1832 tokens
+## Go (`order_service.go`) — estimated raw ~1797 tokens
 
-- ultra: ~322 tokens (~82.4% saved)
-- medium: ~1461 tokens (~20.3% saved)
-- lite: ~1725 tokens (~5.8% saved)
+- ultra: ~322 tokens (estimated) (~82.1% saved)
+- medium: ~1442 tokens (estimated) (~19.8% saved)
+- lite: ~1706 tokens (estimated) (~5.1% saved)
 
 <details>
 <summary>ultra <code>order_service.go</code></summary>
@@ -1663,13 +1665,13 @@ type OrderItem struct { SKU         string  `json:"sku"`, Quantity    int     `j
 type Customer struct { ID    int64  `json:"id"`, Name  string `json:"name"`, Email string `json:"email"`, Tier  string `json:"tier"` }
 type Order struct { ID     int64       `json:"id"`, Status string      `json:"status"`, Items  []OrderItem `json:"items"` }
 type Service struct { DBURL   string; Timeout time.Duration; cache   map[int64]*Order }
-fn New(dbURL string, timeout time.Duration) *Service { ... }
-fn (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) { ... }
-fn (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) { ... }
-fn (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) { ... }
-fn (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) { ... }
-fn (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 { ... }
-fn contains(s, sub string) bool { ... }
+func New(dbURL string, timeout time.Duration) *Service { ... }
+func (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) { ... }
+func (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) { ... }
+func (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) { ... }
+func (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) { ... }
+func (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 { ... }
+func contains(s, sub string) bool { ... }
 ```
 </details>
 
@@ -1698,11 +1700,11 @@ type Order struct { ID     int64       `json:"id"`, Status string      `json:"st
 // Service manages order validation, pricing, and fulfillment workflows.
 type Service struct { DBURL   string; Timeout time.Duration; cache   map[int64]*Order }
 // New creates new order service connection config.
-fn New(dbURL string, timeout time.Duration) *Service {
-  ret &Service{ DBURL:   dbURL, Timeout: timeout, cache:   make(map[int64]*Order), }
+func New(dbURL string, timeout time.Duration) *Service {
+  return &Service{ DBURL:   dbURL, Timeout: timeout, cache:   make(map[int64]*Order), }
 }
-// ValidateOrder checks order and ret human-readable violations.
-fn (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) {
+// ValidateOrder checks order and returns human-readable violations.
+func (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) {
 // Record validation attempt audit trail and debugging purposes
   log.Printf("starting validation...", order.ID)
   log.Printf("validating order for...", customer.Email, coupon)
@@ -1726,10 +1728,10 @@ fn (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) (
     if len(coupon) < 6 || len(coupon) > 16 { violations = append(violations, "Coupon code length i...") }
   }
   log.Printf("validation complete...", len(violations))
-  ret violations, nil
+  return violations, nil
 }
 // ComputeTotals calculates subtotal, tax, shipping, and grand total.
-fn (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) {
+func (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) {
 // Detailed computation trace helps finance reconcile rounding issues
   log.Printf("computing totals for...", order.ID, taxRate)
   subtotal := 0.0
@@ -1746,47 +1748,47 @@ fn (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float6
   if subtotal > 150.0 { log.Printf("applying free shippi..."); shipping = 0.0 }
   total := subtotal + tax + shipping
   log.Printf("grand total computed...", total)
-  ret map[string]float64{"subtotal": subtotal, "tax": tax, "shipping": shipping, "total": total}, nil
+  return map[string]float64{"subtotal": subtotal, "tax": tax, "shipping": shipping, "total": total}, nil
 }
 // ReserveInventory holds stock preferred warehouse before payment.
-fn (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) {
+func (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) {
 // Inventory reservation must precede payment capture to avoid oversell
   log.Printf("reserving inventory...", warehouse, order.ID)
-  if len(order.Items) == 0 { log.Printf("nothing to reserve f..."); ret false, errors.New("empty order payload...") }
+  if len(order.Items) == 0 { log.Printf("nothing to reserve f..."); return false, errors.New("empty order payload...") }
   for _, item := range order.Items {
 // Each reservation idempotent via sku plus order identifier key
     log.Printf("reserving %d units o...", item.Quantity, item.SKU, order.ID)
-    if item.Quantity > 1000 { log.Printf("large quantity reser..."); ret false, errors.New("large quantity reser...") }
+    if item.Quantity > 1000 { log.Printf("large quantity reser..."); return false, errors.New("large quantity reser...") }
   }
   log.Printf("all line items reser...")
-  ret true, nil
+  return true, nil
 }
-// ScheduleShipment books carrier and ret tracking identifier.
-fn (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) {
+// ScheduleShipment books carrier and returns tracking identifier.
+func (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
   log.Printf("scheduling shipment...", carrier, expedited, order.ID)
-  if len(order.Items) == 0 { log.Printf("cannot schedule ship..."); ret "", errors.New("cannot schedule ship...") }
+  if len(order.Items) == 0 { log.Printf("cannot schedule ship..."); return "", errors.New("cannot schedule ship...") }
   method := "standard-ground-shipping"
   if expedited { method = "expedited-air-freigh..." }
   log.Printf("selected shipment me...", method, order.ID)
   tracking := fmt.Sprintf("%s-TRACK-%08d-EXAMPL...", carrier, order.ID)
   log.Printf("generated tracking i...", tracking)
   fmt.Printf("scheduled %s\n", tracking)
-  ret tracking, nil
+  return tracking, nil
 }
 // ApplyLoyaltyCredit discounts total eligible membership tiers.
-fn (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 {
+func (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 {
 // Loyalty credits funded quarterly retention marketing budget
   log.Printf("evaluating loyalty c...", customer.Tier)
-  if customer.Tier == "gold" { log.Printf("applying gold tier r..."); ret total - 25.0 }
+  if customer.Tier == "gold" { log.Printf("applying gold tier r..."); return total - 25.0 }
   log.Printf("no loyalty credit av...")
-  ret total
+  return total
 }
-fn contains(s, sub string) bool {
+func contains(s, sub string) bool {
   for i := 0; i+len(sub) <= len(s); i++ {
-    if s[i:i+len(sub)] == sub { ret true }
+    if s[i:i+len(sub)] == sub { return true }
   }
-  ret false
+  return false
 }
 ```
 </details>
@@ -1824,15 +1826,15 @@ type Service struct {
   cache   map[int64]*Order
 }
 // New creates new order service connection config.
-fn New(dbURL string, timeout time.Duration) *Service {
-  ret &Service{
+func New(dbURL string, timeout time.Duration) *Service {
+  return &Service{
     DBURL:   dbURL,
     Timeout: timeout,
     cache:   make(map[int64]*Order),
   }
 }
-// ValidateOrder checks order and ret human-readable violations.
-fn (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) {
+// ValidateOrder checks order and returns human-readable violations.
+func (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) ([]string, error) {
 // Record validation attempt audit trail and debugging purposes
   log.Printf("starting validation for order %d in strict mode", order.ID)
   log.Printf("validating order for customer %s with coupon %.10s", customer.Email, coupon)
@@ -1874,10 +1876,10 @@ fn (s *Service) ValidateOrder(order *Order, customer *Customer, coupon string) (
     }
   }
   log.Printf("validation complete with %d violations recorded total", len(violations))
-  ret violations, nil
+  return violations, nil
 }
 // ComputeTotals calculates subtotal, tax, shipping, and grand total.
-fn (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) {
+func (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float64) (map[string]float64, error) {
 // Detailed computation trace helps finance reconcile rounding issues
   log.Printf("computing totals for order %d with tax rate %f", order.ID, taxRate)
   subtotal := 0.0
@@ -1897,34 +1899,34 @@ fn (s *Service) ComputeTotals(order *Order, taxRate float64, shippingFlat float6
   }
   total := subtotal + tax + shipping
   log.Printf("grand total computed as %f for downstream payment capture step", total)
-  ret map[string]float64{"subtotal": subtotal, "tax": tax, "shipping": shipping, "total": total}, nil
+  return map[string]float64{"subtotal": subtotal, "tax": tax, "shipping": shipping, "total": total}, nil
 }
 // ReserveInventory holds stock preferred warehouse before payment.
-fn (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) {
+func (s *Service) ReserveInventory(order *Order, warehouse string) (bool, error) {
 // Inventory reservation must precede payment capture to avoid oversell
   log.Printf("reserving inventory in warehouse %s for order %d", warehouse, order.ID)
   if len(order.Items) == 0 {
     log.Printf("nothing to reserve for empty order payload received from client")
-    ret false, errors.New("empty order payload cannot be reserved for fulfillment")
+    return false, errors.New("empty order payload cannot be reserved for fulfillment")
   }
   for _, item := range order.Items {
 // Each reservation idempotent via sku plus order identifier key
     log.Printf("reserving %d units of sku %s for order %d", item.Quantity, item.SKU, order.ID)
     if item.Quantity > 1000 {
       log.Printf("large quantity reservation requires manual approval workflow step")
-      ret false, errors.New("large quantity reservation requires manual approval workflow")
+      return false, errors.New("large quantity reservation requires manual approval workflow")
     }
   }
   log.Printf("all line items reserved successfully without inventory contention")
-  ret true, nil
+  return true, nil
 }
-// ScheduleShipment books carrier and ret tracking identifier.
-fn (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) {
+// ScheduleShipment books carrier and returns tracking identifier.
+func (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (string, error) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
   log.Printf("scheduling shipment via carrier %s expedited=%v for order %d", carrier, expedited, order.ID)
   if len(order.Items) == 0 {
     log.Printf("cannot schedule shipment for order without line items present")
-    ret "", errors.New("cannot schedule shipment for order without line items present")
+    return "", errors.New("cannot schedule shipment for order without line items present")
   }
   method := "standard-ground-shipping"
   if expedited {
@@ -1934,26 +1936,26 @@ fn (s *Service) ScheduleShipment(order *Order, carrier string, expedited bool) (
   tracking := fmt.Sprintf("%s-TRACK-%08d-EXAMPLE-LONG-IDENTIFIER", carrier, order.ID)
   log.Printf("generated tracking identifier %s for customer notification email", tracking)
   fmt.Printf("scheduled %s\n", tracking)
-  ret tracking, nil
+  return tracking, nil
 }
 // ApplyLoyaltyCredit discounts total eligible membership tiers.
-fn (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 {
+func (s *Service) ApplyLoyaltyCredit(customer *Customer, total float64) float64 {
 // Loyalty credits funded quarterly retention marketing budget
   log.Printf("evaluating loyalty credit for membership tier %s level", customer.Tier)
   if customer.Tier == "gold" {
     log.Printf("applying gold tier retention marketing credit to order total sum")
-    ret total - 25.0
+    return total - 25.0
   }
   log.Printf("no loyalty credit available for standard tier customer accounts")
-  ret total
+  return total
 }
-fn contains(s, sub string) bool {
+func contains(s, sub string) bool {
   for i := 0; i+len(sub) <= len(s); i++ {
     if s[i:i+len(sub)] == sub {
-      ret true
+      return true
     }
   }
-  ret false
+  return false
 }
 ```
 </details>
@@ -2148,11 +2150,11 @@ func contains(s, sub string) bool {
 ```
 </details>
 
-## Rust (`order_service.rs`) — raw ~1630 tokens
+## Rust (`order_service.rs`) — estimated raw ~1594 tokens
 
-- ultra: ~319 tokens (~80.4% saved)
-- medium: ~1339 tokens (~17.9% saved)
-- lite: ~1545 tokens (~5.2% saved)
+- ultra: ~319 tokens (estimated) (~80.0% saved)
+- medium: ~1320 tokens (estimated) (~17.2% saved)
+- lite: ~1526 tokens (estimated) (~4.3% saved)
 
 <details>
 <summary>ultra <code>order_service.rs</code></summary>
@@ -2214,7 +2216,7 @@ impl OrderValidator {
 // Constructor stores config downstream rule evaluation
     Self { db_url, timeout_secs, strict, rules_cache: HashMap::new() }
   }
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
   pub fn validate_order(&mut self, order: &Order, customer: &Customer, coupon: Option<&str>) -> Vec<String> {
 // Record validation attempt audit trail and debugging purposes
     println!("starting validation...", order.id);
@@ -2271,20 +2273,20 @@ impl OrderValidator {
   pub fn reserve_inventory(&mut self, order: &Order, warehouse: &str) -> bool {
 // Inventory reservation must precede payment capture to avoid oversell
     println!("reserving inventory...", warehouse, order.id);
-    if order.items.is_empty() { println!("nothing to reserve f..."); ret false }
+    if order.items.is_empty() { println!("nothing to reserve f..."); return false }
     for item in &order.items {
 // Each reservation idempotent via sku plus order identifier key
       println!("reserving {} units o...", item.quantity, item.sku, order.id);
-      if item.quantity > 1000 { println!("large quantity reser..."); ret false }
+      if item.quantity > 1000 { println!("large quantity reser..."); return false }
     }
     println!("all line items reser...");
     true
   }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
   pub fn schedule_shipment(&self, order: &Order, carrier: &str, expedited: bool) -> Option<String> {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     println!("scheduling shipment...", carrier, expedited, order.id);
-    if order.items.is_empty() { println!("cannot schedule ship..."); ret None }
+    if order.items.is_empty() { println!("cannot schedule ship..."); return None }
 // Carrier selection consults capacity contracts and holiday blackout dates
     let method = if expedited { "expedited-air-freigh..." } else { "standard-ground-shipping" };
     println!("selected shipment me...", method, order.id);
@@ -2296,7 +2298,7 @@ impl OrderValidator {
   pub fn apply_loyalty_credit(&self, customer: &Customer, total: f64) -> f64 {
 // Loyalty credits funded quarterly retention marketing budget
     println!("evaluating loyalty c...", customer.tier);
-    if customer.tier == "gold" { println!("applying gold tier r..."); ret (total - 25.0).max(0.0) }
+    if customer.tier == "gold" { println!("applying gold tier r..."); return (total - 25.0).max(0.0) }
     println!("no loyalty credit av...");
     total
   }
@@ -2345,7 +2347,7 @@ impl OrderValidator {
 // Constructor stores config downstream rule evaluation
     Self { db_url, timeout_secs, strict, rules_cache: HashMap::new() }
   }
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
   pub fn validate_order(&mut self, order: &Order, customer: &Customer, coupon: Option<&str>) -> Vec<String> {
 // Record validation attempt audit trail and debugging purposes
     println!("starting validation for order {} in strict mode", order.id);
@@ -2418,26 +2420,26 @@ impl OrderValidator {
     println!("reserving inventory in warehouse {} for order {}", warehouse, order.id);
     if order.items.is_empty() {
       println!("nothing to reserve for empty order payload received from client");
-      ret false;
+      return false;
     }
     for item in &order.items {
 // Each reservation idempotent via sku plus order identifier key
       println!("reserving {} units of sku {} for order {}", item.quantity, item.sku, order.id);
       if item.quantity > 1000 {
         println!("large quantity reservation requires manual approval workflow step");
-        ret false;
+        return false;
       }
     }
     println!("all line items reserved successfully without inventory contention");
     true
   }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
   pub fn schedule_shipment(&self, order: &Order, carrier: &str, expedited: bool) -> Option<String> {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     println!("scheduling shipment via carrier {} expedited={} for order {}", carrier, expedited, order.id);
     if order.items.is_empty() {
       println!("cannot schedule shipment for order without line items present");
-      ret None;
+      return None;
     }
 // Carrier selection consults capacity contracts and holiday blackout dates
     let method = if expedited { "expedited-air-freight-priority" } else { "standard-ground-shipping" };
@@ -2452,7 +2454,7 @@ impl OrderValidator {
     println!("evaluating loyalty credit for membership tier {} level", customer.tier);
     if customer.tier == "gold" {
       println!("applying gold tier retention marketing credit to order total sum");
-      ret (total - 25.0).max(0.0);
+      return (total - 25.0).max(0.0);
     }
     println!("no loyalty credit available for standard tier customer accounts");
     total
@@ -2629,11 +2631,11 @@ impl OrderValidator {
 ```
 </details>
 
-## Java (`OrderValidator.java`) — raw ~1800 tokens
+## Java (`OrderValidator.java`) — estimated raw ~1764 tokens
 
-- ultra: ~180 tokens (~90.0% saved)
-- medium: ~1468 tokens (~18.4% saved)
-- lite: ~1612 tokens (~10.4% saved)
+- ultra: ~180 tokens (estimated) (~89.8% saved)
+- medium: ~1448 tokens (estimated) (~17.9% saved)
+- lite: ~1592 tokens (estimated) (~9.8% saved)
 
 <details>
 <summary>ultra <code>OrderValidator.java</code></summary>
@@ -2672,7 +2674,7 @@ pub class OrderValidator {
   priv final Map<String, String> rulesCache = new HashMap<>()
   /* Creates new OrderValidator. */
   pub OrderValidator(String dbUrl, int timeout, bool strict) { dbUrl = dbUrl; timeout = timeout; strict = strict }
-// Validate order and ret human-readable violation msg
+// Validate order and return human-readable violation msg
   pub List<String> validateOrder(Order order, Customer customer, String couponCode) {
 // Record validation attempt audit trail and debugging purposes
     logger.fine("Starting validation..." + order.getId() + " in strict mode")
@@ -2697,7 +2699,7 @@ pub class OrderValidator {
       if (couponCode.length() < 6 || couponCode.length() > 16) { violations.add("Coupon code length i...") }
     }
     logger.fine("Validation complete with " + violations.size() + " violations recorded total")
-    ret violations
+    return violations
   }
   /* Compute subtotal, tax, shipping, and grand total checkout. */
   pub Map<String, Double> computeTotals(Order order, double taxRate, double shippingFlat) {
@@ -2722,41 +2724,41 @@ pub class OrderValidator {
     out.put("tax", tax)
     out.put("shipping", shipping)
     out.put("total", total)
-    ret out
+    return out
   }
 // Reserve inventory preferred warehouse before payment capture
   pub bool reserveInventory(Order order, String warehouse) {
 // Inventory reservation must precede payment capture to avoid oversell
     logger.fine("Reserving inventory..." + warehouse + " for order " + order.getId())
     logger.fine("Inventory reservatio...")
-    if (order.getItems() == null || order.getItems().isEmpty()) { logger.fine("Nothing to reserve f..."); ret false }
+    if (order.getItems() == null || order.getItems().isEmpty()) { logger.fine("Nothing to reserve f..."); return false }
     for (OrderItem item : order.getItems()) {
 // Each reservation idempotent via sku plus order identifier key
       logger.fine("Reserving " + item.getQuantity() + " units of sku " + item.getSku())
-      if (item.getQuantity() > 1000) { logger.fine("Large quantity reser..."); ret false }
+      if (item.getQuantity() > 1000) { logger.fine("Large quantity reser..."); return false }
     }
     logger.fine("All line items reser...")
-    ret true
+    return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   pub String scheduleShipment(Order order, String carrier, bool expedited) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     logger.fine("Scheduling shipment..." + carrier + " expedited=" + expedited)
-    if (order.getItems() == null || order.getItems().isEmpty()) { logger.fine("Cannot schedule ship..."); ret null }
+    if (order.getItems() == null || order.getItems().isEmpty()) { logger.fine("Cannot schedule ship..."); return null }
 // Carrier selection consults capacity contracts and holiday blackout dates
     String method = expedited ? "expedited-air-freigh..." : "standard-ground-shipping"
     logger.fine("Selected shipment method " + method + " for order " + order.getId() + " delivery flow")
     String tracking = carrier.toUpperCase() + "-TRACK-" + String.format("%08d", order.getId()) + "-EXAMPLE-LONG-IDENTIFIER"
     logger.fine("Generated tracking i..." + tracking + "for customer notifi...")
-    ret tracking
+    return tracking
   }
 // Apply loyalty tier credit against order total where eligible
   pub double applyLoyaltyCredit(Customer customer, double total) {
 // Loyalty credits funded quarterly retention marketing budget
     logger.fine("Evaluating loyalty c..." + customer.getTier() + " level")
-    if ("gold".equals(customer.getTier())) { logger.fine("Applying gold tier r..."); ret Math.max(0.0, total - 25.0) }
+    if ("gold".equals(customer.getTier())) { logger.fine("Applying gold tier r..."); return Math.max(0.0, total - 25.0) }
     logger.fine("No loyalty credit av...")
-    ret total
+    return total
   }
 }
 ```
@@ -2781,7 +2783,7 @@ pub class OrderValidator {
     timeout = timeout
     strict = strict
   }
-// Validate order and ret human-readable violation msg
+// Validate order and return human-readable violation msg
   pub List<String> validateOrder(Order order, Customer customer, String couponCode) {
 // Record validation attempt audit trail and debugging purposes
     logger.fine("Starting validation for order " + order.getId() + " in strict mode")
@@ -2824,7 +2826,7 @@ pub class OrderValidator {
       }
     }
     logger.fine("Validation complete with " + violations.size() + " violations recorded total")
-    ret violations
+    return violations
   }
   /* Compute subtotal, tax, shipping, and grand total checkout. */
   pub Map<String, Double> computeTotals(Order order, double taxRate, double shippingFlat) {
@@ -2851,7 +2853,7 @@ pub class OrderValidator {
     out.put("tax", tax)
     out.put("shipping", shipping)
     out.put("total", total)
-    ret out
+    return out
   }
 // Reserve inventory preferred warehouse before payment capture
   pub bool reserveInventory(Order order, String warehouse) {
@@ -2860,33 +2862,33 @@ pub class OrderValidator {
     logger.fine("Inventory reservation workflow started for audit compliance purposes")
     if (order.getItems() == null || order.getItems().isEmpty()) {
       logger.fine("Nothing to reserve for empty order payload received from client")
-      ret false
+      return false
     }
     for (OrderItem item : order.getItems()) {
 // Each reservation idempotent via sku plus order identifier key
       logger.fine("Reserving " + item.getQuantity() + " units of sku " + item.getSku())
       if (item.getQuantity() > 1000) {
         logger.fine("Large quantity reservation requires manual approval workflow step")
-        ret false
+        return false
       }
     }
     logger.fine("All line items reserved successfully without inventory contention issues")
-    ret true
+    return true
   }
-// Schedule shipment and ret tracking identifier notification
+// Schedule shipment and return tracking identifier notification
   pub String scheduleShipment(Order order, String carrier, bool expedited) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     logger.fine("Scheduling shipment via carrier " + carrier + " expedited=" + expedited)
     if (order.getItems() == null || order.getItems().isEmpty()) {
       logger.fine("Cannot schedule shipment for order without line items present")
-      ret null
+      return null
     }
 // Carrier selection consults capacity contracts and holiday blackout dates
     String method = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping"
     logger.fine("Selected shipment method " + method + " for order " + order.getId() + " delivery flow")
     String tracking = carrier.toUpperCase() + "-TRACK-" + String.format("%08d", order.getId()) + "-EXAMPLE-LONG-IDENTIFIER"
     logger.fine("Generated tracking identifier " + tracking + " for customer notification email")
-    ret tracking
+    return tracking
   }
 // Apply loyalty tier credit against order total where eligible
   pub double applyLoyaltyCredit(Customer customer, double total) {
@@ -2894,10 +2896,10 @@ pub class OrderValidator {
     logger.fine("Evaluating loyalty credit for membership tier " + customer.getTier() + " level")
     if ("gold".equals(customer.getTier())) {
       logger.fine("Applying gold tier retention marketing credit to order total sum")
-      ret Math.max(0.0, total - 25.0)
+      return Math.max(0.0, total - 25.0)
     }
     logger.fine("No loyalty credit available for standard tier customer accounts")
-    ret total
+    return total
   }
 }
 ```
@@ -3070,11 +3072,11 @@ public class OrderValidator {
 ```
 </details>
 
-## C++ (`order_service.cpp`) — raw ~1880 tokens
+## C++ (`order_service.cpp`) — estimated raw ~1845 tokens
 
-- ultra: ~288 tokens (~84.7% saved)
-- medium: ~1500 tokens (~20.2% saved)
-- lite: ~1635 tokens (~13.0% saved)
+- ultra: ~288 tokens (estimated) (~84.4% saved)
+- medium: ~1481 tokens (estimated) (~19.7% saved)
+- lite: ~1616 tokens (estimated) (~12.4% saved)
 
 <details>
 <summary>ultra <code>order_service.cpp</code></summary>
@@ -3127,7 +3129,7 @@ class OrderValidator {
 public:
 // Create new validator connection config values.
   OrderValidator(const string& db_url, int timeout = 30, bool strict = true) : db_url_(db_url), timeout_(timeout), strict_(strict) {}
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
   vector<string> validateOrder(const Order& order, const Customer& customer, const string& coupon) {
 // Record validation attempt audit trail and debugging purposes
     cout << "starting validation..." << order.id << " in strict mode" << endl;
@@ -3152,7 +3154,7 @@ public:
       if (coupon.size() < 6 || coupon.size() > 16) { violations.push_back("Coupon code length i...") }
     }
     cout << "validation complete with " << violations.size() << " violations recorded total" << endl;
-    ret violations;
+    return violations;
   }
 // Compute subtotal, tax, shipping, and grand total checkout display.
   unordered_map<string, double> computeTotals(const Order& order, double tax_rate = 0.08, double shipping_flat = 5.99) {
@@ -3172,32 +3174,32 @@ public:
     if (shipping == 0.0) { cout << "applying free shippi..." << endl; }
     double total = std::round((subtotal + tax + shipping) * 100.0) / 100.0;
     cout << "grand total computed as " << total << " for downstream payment" << endl;
-    ret { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
+    return { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
   }
 // Reserve inventory preferred warehouse before payment capture.
   bool reserveInventory(const Order& order, const string& warehouse = "us-east-1") {
 // Inventory reservation must precede payment capture to avoid oversell
     cout << "reserving inventory..." << warehouse << " for order " << order.id << endl;
-    if (order.items.empty()) { cout << "nothing to reserve f..." << endl; ret false }
+    if (order.items.empty()) { cout << "nothing to reserve f..." << endl; return false }
     for (auto& item : order.items) {
 // Each reservation idempotent via sku plus order identifier key
       cout << "reserving " << item.quantity << " units of sku " << item.sku << endl;
-      if (item.quantity > 1000) { cout << "large quantity reser..." << endl; ret false }
+      if (item.quantity > 1000) { cout << "large quantity reser..." << endl; return false }
     }
     cout << "all line items reser..." << endl;
-    ret true;
+    return true;
   }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
   string scheduleShipment(const Order& order, const string& carrier = "ups", bool expedited = false) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     cout << "scheduling shipment..." << carrier << " expedited=" << expedited << endl;
-    if (order.items.empty()) { cout << "cannot schedule ship..." << endl; ret "" }
+    if (order.items.empty()) { cout << "cannot schedule ship..." << endl; return "" }
 // Carrier selection consults capacity contracts and holiday blackout dates
     string method = expedited ? "expedited-air-freigh..." : "standard-ground-shipping";
     cout << "selected shipment method " << method << " for order " << order.id << endl;
     string tracking = carrier + "-TRACK-EXAMPLE-LONG-...";
     cout << "generated tracking i..." << tracking << " for customer notification" << endl;
-    ret tracking;
+    return tracking;
   }
 private:
   string db_url_;
@@ -3212,7 +3214,7 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) {
   int whole = (int)grand;
   double frac = grand - whole;
   if (frac < 0.005) { grand = whole; }
-  ret grand;
+  return grand;
 }
 ```
 </details>
@@ -3247,7 +3249,7 @@ class OrderValidator {
 public:
 // Create new validator connection config values.
   OrderValidator(const string& db_url, int timeout = 30, bool strict = true) : db_url_(db_url), timeout_(timeout), strict_(strict) {}
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
   vector<string> validateOrder(const Order& order, const Customer& customer, const string& coupon) {
 // Record validation attempt audit trail and debugging purposes
     cout << "starting validation for order " << order.id << " in strict mode" << endl;
@@ -3290,7 +3292,7 @@ public:
       }
     }
     cout << "validation complete with " << violations.size() << " violations recorded total" << endl;
-    ret violations;
+    return violations;
   }
 // Compute subtotal, tax, shipping, and grand total checkout display.
   unordered_map<string, double> computeTotals(const Order& order, double tax_rate = 0.08, double shipping_flat = 5.99) {
@@ -3312,7 +3314,7 @@ public:
     }
     double total = std::round((subtotal + tax + shipping) * 100.0) / 100.0;
     cout << "grand total computed as " << total << " for downstream payment" << endl;
-    ret { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
+    return { {"subtotal", subtotal}, {"tax", tax}, {"shipping", shipping}, {"total", total}};
   }
 // Reserve inventory preferred warehouse before payment capture.
   bool reserveInventory(const Order& order, const string& warehouse = "us-east-1") {
@@ -3320,33 +3322,33 @@ public:
     cout << "reserving inventory in warehouse " << warehouse << " for order " << order.id << endl;
     if (order.items.empty()) {
       cout << "nothing to reserve for empty order payload received from client" << endl;
-      ret false;
+      return false;
     }
     for (auto& item : order.items) {
 // Each reservation idempotent via sku plus order identifier key
       cout << "reserving " << item.quantity << " units of sku " << item.sku << endl;
       if (item.quantity > 1000) {
         cout << "large quantity reservation requires manual approval workflow step" << endl;
-        ret false;
+        return false;
       }
     }
     cout << "all line items reserved successfully without inventory contention" << endl;
-    ret true;
+    return true;
   }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
   string scheduleShipment(const Order& order, const string& carrier = "ups", bool expedited = false) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
     cout << "scheduling shipment via carrier " << carrier << " expedited=" << expedited << endl;
     if (order.items.empty()) {
       cout << "cannot schedule shipment for order without line items present" << endl;
-      ret "";
+      return "";
     }
 // Carrier selection consults capacity contracts and holiday blackout dates
     string method = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping";
     cout << "selected shipment method " << method << " for order " << order.id << endl;
     string tracking = carrier + "-TRACK-EXAMPLE-LONG-IDENTIFIER-00000000";
     cout << "generated tracking identifier " << tracking << " for customer notification" << endl;
-    ret tracking;
+    return tracking;
   }
 private:
   string db_url_;
@@ -3365,7 +3367,7 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) {
   int whole = (int)grand;
   double frac = grand - whole;
   if (frac < 0.005) { grand = whole; }
-  ret grand;
+  return grand;
 }
 ```
 </details>
@@ -3543,11 +3545,11 @@ double batchGrandTotal(const double* subs, const double* taxes, int n) {
 ```
 </details>
 
-## C# (`OrderValidator.cs`) — raw ~1847 tokens
+## C# (`OrderValidator.cs`) — estimated raw ~1811 tokens
 
-- ultra: ~361 tokens (~80.5% saved)
-- medium: ~1433 tokens (~22.4% saved)
-- lite: ~1679 tokens (~9.1% saved)
+- ultra: ~361 tokens (estimated) (~80.1% saved)
+- medium: ~1414 tokens (estimated) (~21.9% saved)
+- lite: ~1660 tokens (estimated) (~8.3% saved)
 
 <details>
 <summary>ultra <code>OrderValidator.cs</code></summary>
@@ -3637,7 +3639,7 @@ namespace Example.Orders
       _strict = strict
       _logger = logger
     }
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
     pub List<string> ValidateOrder(Order order, Customer customer, string couponCode = "") {
 // Record validation attempt audit trail and debugging purposes
       _logger?.LogDebug("Starting validation...", order.Id)
@@ -3672,7 +3674,7 @@ namespace Example.Orders
         if (couponCode.Length < 6 || couponCode.Length > 16) { violations.Add("Coupon code length i...") }
       }
       _logger?.LogDebug("Validation complete...", violations.Count)
-      ret violations
+      return violations
     }
 // Compute subtotal, tax, shipping, and grand total.
     pub Dictionary<string, double> ComputeTotals(Order order, double taxRate = 0.08, double shippingFlat = 5.99) {
@@ -3692,33 +3694,33 @@ namespace Example.Orders
       if (shipping == 0.0) { _logger?.LogDebug("Applying free shippi...") }
       double total = Math.Round(subtotal + tax + shipping, 2)
       _logger?.LogDebug("Grand total computed...", total)
-      ret new Dictionary<string, double> { ["subtotal"] = subtotal, ["tax"] = tax, ["shipping"] = shipping, ["total"] = total }
+      return new Dictionary<string, double> { ["subtotal"] = subtotal, ["tax"] = tax, ["shipping"] = shipping, ["total"] = total }
     }
 // Reserve inventory preferred warehouse before payment capture.
     pub async Task<bool> ReserveInventoryAsync(Order order, string warehouse = "us-east-1") {
 // Inventory reservation must precede payment capture to avoid oversell
       _logger?.LogDebug("Reserving inventory...", warehouse, order.Id)
-      if (order.Items == null || order.Items.Count == 0) { _logger?.LogDebug("Nothing to reserve f..."); ret false }
+      if (order.Items == null || order.Items.Count == 0) { _logger?.LogDebug("Nothing to reserve f..."); return false }
       foreach (var item in order.Items) {
 // Each reservation idempotent via sku plus order identifier key
         _logger?.LogDebug("Reserving {Qty} unit...", item.Quantity, item.Sku, order.Id)
-        if (item.Quantity > 1000) { _logger?.LogInformation("Large quantity reser..."); ret false }
+        if (item.Quantity > 1000) { _logger?.LogInformation("Large quantity reser..."); return false }
         await Task.Delay(10)
       }
       _logger?.LogDebug("All line items reser...")
-      ret true
+      return true
     }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
     pub string ScheduleShipment(Order order, string carrier = "ups", bool expedited = false) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
       _logger?.LogDebug("Scheduling shipment...", carrier, expedited, order.Id)
-      if (order.Items == null || order.Items.Count == 0) { _logger?.LogDebug("Cannot schedule ship..."); ret null! }
+      if (order.Items == null || order.Items.Count == 0) { _logger?.LogDebug("Cannot schedule ship..."); return null! }
 // Carrier selection consults capacity contracts and holiday blackout dates
       string method = expedited ? "expedited-air-freigh..." : "standard-ground-shipping"
       _logger?.LogInformation("Selected shipment me...", method, order.Id)
       string tracking = $"{carrier.ToUpper()}-..."
       _logger?.LogDebug("Generated tracking i...", tracking)
-      ret tracking
+      return tracking
     }
   }
 }
@@ -3769,7 +3771,7 @@ namespace Example.Orders
       _strict = strict
       _logger = logger
     }
-// Validate order and ret human-readable violation msg.
+// Validate order and return human-readable violation msg.
     pub List<string> ValidateOrder(Order order, Customer customer, string couponCode = "") {
 // Record validation attempt audit trail and debugging purposes
       _logger?.LogDebug("Starting validation for order {Id} in strict mode", order.Id)
@@ -3815,7 +3817,7 @@ namespace Example.Orders
         }
       }
       _logger?.LogDebug("Validation complete with {Count} violations recorded total", violations.Count)
-      ret violations
+      return violations
     }
 // Compute subtotal, tax, shipping, and grand total.
     pub Dictionary<string, double> ComputeTotals(Order order, double taxRate = 0.08, double shippingFlat = 5.99) {
@@ -3837,7 +3839,7 @@ namespace Example.Orders
       }
       double total = Math.Round(subtotal + tax + shipping, 2)
       _logger?.LogDebug("Grand total computed as {Total} for downstream payment capture step", total)
-      ret new Dictionary<string, double> { ["subtotal"] = subtotal, ["tax"] = tax, ["shipping"] = shipping, ["total"] = total }
+      return new Dictionary<string, double> { ["subtotal"] = subtotal, ["tax"] = tax, ["shipping"] = shipping, ["total"] = total }
     }
 // Reserve inventory preferred warehouse before payment capture.
     pub async Task<bool> ReserveInventoryAsync(Order order, string warehouse = "us-east-1") {
@@ -3845,34 +3847,34 @@ namespace Example.Orders
       _logger?.LogDebug("Reserving inventory in warehouse {Wh} for order {Id}", warehouse, order.Id)
       if (order.Items == null || order.Items.Count == 0) {
         _logger?.LogDebug("Nothing to reserve for empty order payload received from client")
-        ret false
+        return false
       }
       foreach (var item in order.Items) {
 // Each reservation idempotent via sku plus order identifier key
         _logger?.LogDebug("Reserving {Qty} units of sku {Sku} for order {Id}", item.Quantity, item.Sku, order.Id)
         if (item.Quantity > 1000) {
           _logger?.LogInformation("Large quantity reservation requires manual approval workflow step")
-          ret false
+          return false
         }
         await Task.Delay(10)
       }
       _logger?.LogDebug("All line items reserved successfully without inventory contention issues")
-      ret true
+      return true
     }
-// Schedule shipment and ret tracking identifier notification.
+// Schedule shipment and return tracking identifier notification.
     pub string ScheduleShipment(Order order, string carrier = "ups", bool expedited = false) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
       _logger?.LogDebug("Scheduling shipment via carrier {C} expedited={E} for order {Id}", carrier, expedited, order.Id)
       if (order.Items == null || order.Items.Count == 0) {
         _logger?.LogDebug("Cannot schedule shipment for order without line items present")
-        ret null!
+        return null!
       }
 // Carrier selection consults capacity contracts and holiday blackout dates
       string method = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping"
       _logger?.LogInformation("Selected shipment method {M} for order {Id} delivery flow", method, order.Id)
       string tracking = $"{carrier.ToUpper()}-TRACK-{order.Id:00000000}-EXAMPLE-LONG-IDENTIFIER"
       _logger?.LogDebug("Generated tracking identifier {T} for customer notification email", tracking)
-      ret tracking
+      return tracking
     }
   }
 }
@@ -4073,11 +4075,11 @@ namespace Example.Orders
 ```
 </details>
 
-## C (`order_service.c`) — raw ~1842 tokens
+## C (`order_service.c`) — estimated raw ~1807 tokens
 
-- ultra: ~275 tokens (~85.1% saved)
-- medium: ~1471 tokens (~20.1% saved)
-- lite: ~1725 tokens (~6.4% saved)
+- ultra: ~275 tokens (estimated) (~84.8% saved)
+- medium: ~1452 tokens (estimated) (~19.6% saved)
+- lite: ~1706 tokens (estimated) (~5.6% saved)
 
 <details>
 <summary>ultra <code>order_service.c</code></summary>
@@ -4170,7 +4172,7 @@ int validator_validate(OrderValidator* v, int order_id, const Customer* c, const
     if (len < 6 || len > 16) { strcpy(out[n++], "Coupon code length i..."); }
   }
   printf("validation complete...", n);
-  ret n;
+  return n;
 }
 // Compute subtotal, tax, shipping, and grand total checkout display.
 void validator_totals(OrderValidator* v, double tax_rate, double shipping_flat, double* sub, double* tax, double* ship, double* total) {
@@ -4196,32 +4198,32 @@ void validator_totals(OrderValidator* v, double tax_rate, double shipping_flat, 
 bool validator_reserve(OrderValidator* v, int order_id, const char* warehouse) {
 // Inventory reservation must precede payment capture to avoid oversell
   printf("reserving inventory...", warehouse, order_id);
-  if (v->item_count == 0) { printf("nothing to reserve f..."); ret false }
+  if (v->item_count == 0) { printf("nothing to reserve f..."); return false }
   for (int i = 0; i < v->item_count; i++) {
 // Each reservation idempotent via sku plus order identifier key
     printf("reserving %d units o...", v->items[i].quantity, v->items[i].sku, order_id);
-    if (v->items[i].quantity > 1000) { printf("large quantity reser..."); ret false }
+    if (v->items[i].quantity > 1000) { printf("large quantity reser..."); return false }
   }
   printf("all line items reser...");
-  ret true;
+  return true;
 }
 // Schedule shipment and write tracking identifier to output.
 bool validator_ship(OrderValidator* v, int order_id, const char* carrier, bool expedited, char* tracking_out) {
 // Shipment scheduling consults carrier capacity and holiday blackout dates
   printf("scheduling shipment...", carrier, expedited, order_id);
-  if (v->item_count == 0) { printf("cannot schedule ship..."); ret false }
+  if (v->item_count == 0) { printf("cannot schedule ship..."); return false }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const char* method = expedited ? "expedited-air-freigh..." : "standard-ground-shipping";
   printf("selected shipment me...", method, order_id);
   snprintf(tracking_out, 128, "%s-TRACK-%08d-EXAMPL...", carrier, order_id);
   printf("generated tracking i...", tracking_out);
-  ret true;
+  return true;
 }
 // Batch pricing helper plain arithmetic and loops.
 double batch_grand_total(const double* subs, const double* taxes, int n) {
   double grand = 0.0;
   for (int i = 0; i < n; ++i) { double row = subs[i] + taxes[i]; double ship = subs[i] > 150.0 ? 0.0 : 5.99; grand += row + ship }
-  ret grand;
+  return grand;
 }
 ```
 </details>
@@ -4309,7 +4311,7 @@ int validator_validate(OrderValidator* v, int order_id, const Customer* c, const
     }
   }
   printf("validation complete with %d violations recorded total\n", n);
-  ret n;
+  return n;
 }
 // Compute subtotal, tax, shipping, and grand total checkout display.
 void validator_totals(OrderValidator* v, double tax_rate, double shipping_flat, double* sub, double* tax, double* ship, double* total) {
@@ -4339,18 +4341,18 @@ bool validator_reserve(OrderValidator* v, int order_id, const char* warehouse) {
   printf("reserving inventory in warehouse %s for order %d\n", warehouse, order_id);
   if (v->item_count == 0) {
     printf("nothing to reserve for empty order payload received from client\n");
-    ret false;
+    return false;
   }
   for (int i = 0; i < v->item_count; i++) {
 // Each reservation idempotent via sku plus order identifier key
     printf("reserving %d units of sku %s for order %d\n", v->items[i].quantity, v->items[i].sku, order_id);
     if (v->items[i].quantity > 1000) {
       printf("large quantity reservation requires manual approval workflow step\n");
-      ret false;
+      return false;
     }
   }
   printf("all line items reserved successfully without inventory contention\n");
-  ret true;
+  return true;
 }
 // Schedule shipment and write tracking identifier to output.
 bool validator_ship(OrderValidator* v, int order_id, const char* carrier, bool expedited, char* tracking_out) {
@@ -4358,14 +4360,14 @@ bool validator_ship(OrderValidator* v, int order_id, const char* carrier, bool e
   printf("scheduling shipment via carrier %s expedited=%d for order %d\n", carrier, expedited, order_id);
   if (v->item_count == 0) {
     printf("cannot schedule shipment for order without line items present\n");
-    ret false;
+    return false;
   }
 // Carrier selection consults capacity contracts and holiday blackout dates
   const char* method = expedited ? "expedited-air-freight-priority" : "standard-ground-shipping";
   printf("selected shipment method %s for order %d delivery flow\n", method, order_id);
   snprintf(tracking_out, 128, "%s-TRACK-%08d-EXAMPLE-LONG-IDENTIFIER", carrier, order_id);
   printf("generated tracking identifier %s for customer notification email\n", tracking_out);
-  ret true;
+  return true;
 }
 // Batch pricing helper plain arithmetic and loops.
 double batch_grand_total(const double* subs, const double* taxes, int n) {
@@ -4375,7 +4377,7 @@ double batch_grand_total(const double* subs, const double* taxes, int n) {
     double ship = subs[i] > 150.0 ? 0.0 : 5.99;
     grand += row + ship;
   }
-  ret grand;
+  return grand;
 }
 ```
 </details>
@@ -4551,5 +4553,3 @@ double batch_grand_total(const double* subs, const double* taxes, int n) {
 }
 ```
 </details>
-
-*Outputs are reference representations — edit originals. Token counts approximate.*

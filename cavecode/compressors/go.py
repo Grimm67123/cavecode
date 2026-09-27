@@ -28,13 +28,11 @@ class GoCompressor(BaseCompressor):
         code = self.strip_verbose_logging(code, mode=m)
 
         # 5. Keywords & types
-        code = re.sub(r'\bfunc\b', 'fn', code)
-        code = re.sub(r'\breturn\b', 'ret', code)
         code = re.sub(r'\binterface\{\}', 'any', code)
 
         # 6. Multiline signatures collapse (anchored fallback)
         code = re.sub(
-            r'^[ \t]*fn\s+(?:\([^)]+\)\s+)?[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:\([^)]*?\)|[a-zA-Z0-9_*&<>, ]+)?\s*\{',
+            r'^[ \t]*func\s+(?:\([^)]+\)\s+)?[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:\([^)]*?\)|[a-zA-Z0-9_*&<>, ]+)?\s*\{',
             lambda m: re.sub(r'\s*\n\s*', ' ', m.group(0)),
             code,
             flags=re.MULTILINE,
@@ -42,14 +40,14 @@ class GoCompressor(BaseCompressor):
 
         # 7. Condense 'if err != nil'
         code = re.sub(
-            r'^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}',
-            lambda m: f"if err != nil {{ ret {m.group(1).strip()} }}".replace("ret  }", "ret }"),
+            r'^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*return\s*([^;\n]*?)\s*\r?\n[ \t]*\}',
+            lambda m: f"if err != nil {{ return {m.group(1).strip()} }}".replace("return  }", "return }"),
             code,
             flags=re.MULTILINE,
         )
         code = re.sub(
-            r'^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*([^\n]+?)\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}',
-            lambda m: f"if err != nil {{ {m.group(1).strip()}; ret {m.group(2).strip()} }}".replace("ret  }", "ret }").replace("ret }", "ret }"),
+            r'^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*([^\n]+?)\s*\r?\n[ \t]*return\s*([^;\n]*?)\s*\r?\n[ \t]*\}',
+            lambda m: f"if err != nil {{ {m.group(1).strip()}; return {m.group(2).strip()} }}".replace("return  }", "return }").replace("return }", "return }"),
             code,
             flags=re.MULTILINE,
         )

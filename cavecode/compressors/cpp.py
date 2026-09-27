@@ -52,7 +52,6 @@ class CppCompressor(BaseCompressor):
         )
 
         # 6. Type & keyword abbreviations
-        code = re.sub(r'\breturn\b', 'ret', code)
         code = re.sub(r'\bunsigned\s+int\b', 'u32', code)
         code = re.sub(r'\bunsigned\s+long\s+long\b', 'u64', code)
         code = re.sub(r'\bunsigned\s+long\b', 'u64', code)
@@ -85,7 +84,7 @@ class CppCompressor(BaseCompressor):
 
         # 8. Multiline function signatures collapse (line-anchored fallback)
         code = re.sub(
-            r'^[ \t]*(?:static\s+|inline\s+|virtual\s+|explicit\s+|constexpr\s+|friend\s+)*(?:[a-zA-Z0-9_*&<>,]+\s+)+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_:]+\s*\([^;{]*?\)\s*(?:const\s*)?(?:noexcept\s*)?\{',
+            r'^[ \t]*(?:static\s+|inline\s+|virtual\s+|explicit\s+|constexpr\s+|friend\s+)*(?:[a-zA-Z0-9_*&<>,]+\s+)+(?!(?:if|while|for|switch|catch|return)\b)[a-zA-Z0-9_:]+\s*\([^;{]*?\)\s*(?:const\s*)?(?:noexcept\s*)?\{',
             lambda m: re.sub(r'\s*\n\s*', ' ', m.group(0)),
             code,
             flags=re.MULTILINE,

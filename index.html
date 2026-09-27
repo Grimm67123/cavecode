@@ -185,7 +185,7 @@
     <div class="grid">
       <div class="panel">
         <div class="panel-header">
-          <span id="rawMeta">~0 tokens</span>
+          <span id="rawMeta">~0 tokens (estimated)</span>
           <span id="detectedLang" style="opacity:.7"></span>
         </div>
         <textarea id="inputCode" placeholder="Paste source code here..." oninput="processCode()"></textarea>
@@ -203,26 +203,21 @@
     <div class="stats-bar">
       <div class="stat-card">
         <div class="stat-val" id="statRawTokens">~0</div>
-        <div class="stat-lbl">Raw Tokens</div>
+        <div class="stat-lbl">Estimated Raw Tokens</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="statCompTokens">~0</div>
-        <div class="stat-lbl">Compressed Tokens</div>
+        <div class="stat-lbl">Estimated Compressed Tokens</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="statSavedTokens">~0</div>
-        <div class="stat-lbl">Tokens Saved</div>
+        <div class="stat-lbl">Estimated Tokens Saved</div>
       </div>
       <div class="stat-card">
         <div class="stat-val reduction" id="statReduction">~0%</div>
-        <div class="stat-lbl">Reduction</div>
+        <div class="stat-lbl">Estimated Reduction</div>
       </div>
     </div>
-
-
-    <footer>
-      Licensed under GNU Affero General Public License v3
-    </footer>
   </div>
 
 <script>
@@ -262,9 +257,7 @@ function unmaskStrings(src, tokens) {
 function telegraphicComment(text, prefix) {
   prefix = prefix === undefined ? '// ' : prefix;
   if (/copy\w*|licensed under|all rights reserved|general public license|mit license|apache license/i.test(text)) {
-    const m = text.match(/copy\w*\s+(?:\(c\)\s*)?([0-9\-, ]+)?\s*([a-zA-Z0-9_\. ]+)/i);
-    const owner = m ? m[0].trim() : 'Authors';
-    return prefix + '[License: ' + owner + ']';
+    return '';
   }
   if (/#(?:region|endregion)\b/i.test(text)) return '';
   const mSect = text.match(/[-=*~]{4,}\s*([a-zA-Z0-9_ ]+)\s*[-=*~]{4,}/);
@@ -292,8 +285,6 @@ function telegraphicComment(text, prefix) {
     [/\b(?:please note that|note that|it should be noted that)\b/gi, 'NOTE:'],
     [/\b(?:as well as|in addition to)\b/gi, '&'],
     [/\b(?:for example|such as|e\.g\.)\b/gi, 'eg'],
-    [/\breturn(?:ing|s)?\b/gi, 'ret'],
-    [/\bfunction(?:s)?\b/gi, 'fn'],
     [/\bstring(?:s)?\b/gi, 'str'],
     [/\bboolean\b/gi, 'bool'],
     [/\bmessage(?:s)?\b/gi, 'msg'],
@@ -447,7 +438,7 @@ function normalizeIndentation(text) {
 /* ---------- ultra body stubbing (heuristic port of ast_pruner ultra) ---------- */
 function stubPythonBodies(code) {
   // collapse multiline defs first (same regex as python.py)
-  code = code.replace(/(?:async\s+)?(?:def|fn)\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/(?:async\s+)?def\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
   const lines = code.split('\n');
   const out = [];
   let inFunc = false, funcIndent = 0, hasPass = false;
@@ -565,7 +556,7 @@ function compressPython(code, mode) {
     code = code.replace(/^[ \t]*if\s+TYPE_CHECKING:[\s\S]*?(?=^[a-zA-Z0-9_#])/gm, '');
     code = code.replace(/\bself\./g, '');
   }
-  code = code.replace(/(?:async\s+)?(?:def|fn)\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/(?:async\s+)?def\s+[a-zA-Z0-9_]+\s*\([^:]*?\)\s*(?:->[^:]+?)?:/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
   code = code.replace(/^([ \t]*)if\s+([^\n:]+):\s*\n[ \t]+(return\b[^\n]+|raise\b[^\n]+)/gm, '$1if $2: $3');
   code = code.replace(/from\s+([a-zA-Z0-9_\.]+)\s+import\s*\(([^)]+)\)/g, (full, mod, inner) => {
     const parts = inner.split(/[\s,]+/).map(x => x.trim().replace(/,+$/, '')).filter(x => x);
@@ -585,7 +576,6 @@ function compressPython(code, mode) {
   code = code.replace(/\b(?:typing\.)?Optional\[([a-zA-Z0-9_\[\],\s]+)\]/g, '$1?');
   code = code.replace(/\b(?:typing\.)?Union\[([a-zA-Z0-9_]+),\s*([a-zA-Z0-9_]+)\]/g, '$1 | $2');
   code = code.replace(/\btyping\.List\b/g, 'list').replace(/\btyping\.Dict\b/g, 'dict').replace(/\btyping\.Set\b/g, 'set').replace(/\btyping\.Tuple\b/g, 'tuple').replace(/\btyping\.Any\b/g, 'any');
-  code = code.replace(/\breturn\b/g, 'ret').replace(/\bdef\b/g, 'fn');
   code = code.replace(/if\s+__name__\s*==\s*['"]__main__['"]\s*:/g, 'if __main__:');
   code = code.replace(/([:\n]\s*"""[\s\S]*?"""\s*)\n\s*pass\b/g, '$1');
   return normalizeIndentation(code);
@@ -627,10 +617,10 @@ function compressJavaScript(code, lang, mode) {
       return full;
     });
   }
-  code = code.replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '').replace(/\bfunction\b/g, 'fn');
-  code = code.replace(/\bexport\s+default\s+function\b/g, 'exp def fn').replace(/\bexport\s+default\b/g, 'exp def').replace(/\bexport\b/g, 'exp');
+  code = code.replace(/\bthis\./g, '');
+  code = code.replace(/\bexport\s+default\b/g, 'exp def').replace(/\bexport\b/g, 'exp');
   code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\bboolean\b/g, 'bool');
-  code = code.replace(/^[ \t]*(?:static\s+|pub\s+|priv\s+|prot\s+|ro\s+|fn\s+|func\s+|async\s+)*[a-zA-Z0-9_*&<>, ]+\s+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?::\s*[^;{]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/^[ \t]*(?:static\s+|pub\s+|priv\s+|prot\s+|ro\s+|function\s+|func\s+|async\s+)*[a-zA-Z0-9_*&<>, ]+\s+(?!(?:if|while|for|switch|catch|return)\b)[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?::\s*[^;{]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
   code = stripSemicolons(code);
   code = inlineSmallBlocks(code, m);
   code = code.replace(/(?:^[ \t]*import\s+[^;\n]+;?\s*\r?\n){2,}/gm, (blk) => {
@@ -650,10 +640,10 @@ function compressGo(code, mode) {
   } else code = processCComments(code, m);
   code = condenseStringLiterals(code, m);
   code = stripVerboseLogging(code, m);
-  code = code.replace(/\bfunc\b/g, 'fn').replace(/\breturn\b/g, 'ret').replace(/\binterface\{\}/g, 'any');
-  code = code.replace(/^[ \t]*fn\s+(?:\([^)]+\)\s+)?[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:\([^)]*?\)|[a-zA-Z0-9_*&<>, ]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
-  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a) => ('if err != nil { ret ' + a.trim() + ' }').replace('ret  }', 'ret }'));
-  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*([^\n]+?)\s*\r?\n[ \t]*ret(?:urn)?\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a, b) => ('if err != nil { ' + a.trim() + '; ret ' + b.trim() + ' }'));
+  code = code.replace(/\binterface\{\}/g, 'any');
+  code = code.replace(/^[ \t]*func\s+(?:\([^)]+\)\s+)?[a-zA-Z0-9_]+\s*\([^)]*?\)\s*(?:\([^)]*?\)|[a-zA-Z0-9_*&<>, ]+)?\s*\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*return\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a) => ('if err != nil { return ' + a.trim() + ' }').replace('return  }', 'return }'));
+  code = code.replace(/^[ \t]*if\s+err\s*!=\s*nil\s*\{\s*\r?\n[ \t]*([^\n]+?)\s*\r?\n[ \t]*return\s*([^;\n]*?)\s*\r?\n[ \t]*\}/gm, (full, a, b) => ('if err != nil { ' + a.trim() + '; return ' + b.trim() + ' }'));
   code = code.replace(/import\s*\(\s*\n([^)]+?)\n\s*\)/g, (full, inner) => {
     const pkgs = [...inner.matchAll(/"([^"]+)"/g)].map(x => '"' + x[1] + '"');
     return pkgs.length >= 2 ? 'import (' + pkgs.join(' ') + ')\n' : full;
@@ -675,7 +665,7 @@ function compressRust(code, mode) {
   code = code.replace(/#\[inline[^\]]*\]\s*/g, '').replace(/#\[doc\(hidden[^\]]*\)\]\s*/g, '').replace(/#\[must_use[^\]]*\]\s*/g, '').replace(/#\[rustc_[^\]]*\]\s*/g, '');
   code = code.replace(/#\[derive\(([^)]+)\)\]/g, (full, inner) => '#[derive(' + inner.split(',').map(x => x.trim()).join(',') + ')]');
   code = code.replace(/match\s+([a-zA-Z0-9_.]+)\s*\{\s*Ok\((\w+)\)\s*=>\s*\2,\s*Err\(\w+\)\s*=>\s*return\s+Err\([^)]+\),?\s*\}/g, '$1?');
-  code = code.replace(/\bpub\(crate\)\b/g, 'pub').replace(/\breturn\b/g, 'ret');
+  code = code.replace(/\bpub\(crate\)\b/g, 'pub');
   code = inlineSmallBlocks(code, m);
   code = collapseParamLists(code, m);
   return normalizeIndentation(code);
@@ -693,7 +683,7 @@ function compressJava(code, mode) {
   code = code.replace(/@SuppressWarnings\([^)]*\)\s*/g, '').replace(/@Generated\([^)]*\)\s*/g, '').replace(/@Override\s*/g, '').replace(/@Nullable\s*/g, '?');
   code = code.replace(/\bpublic\s+static\s+final\b/g, 'const').replace(/\bprivate\s+static\s+final\b/g, 'priv const');
   code = code.replace(/\bpublic\s+static\b/g, 'pub static').replace(/\bprivate\s+static\b/g, 'priv static');
-  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\bboolean\b/g, 'bool').replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '');
+  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\bboolean\b/g, 'bool').replace(/\bthis\./g, '');
   code = code.replace(/new\s+([A-Z]\w*)<[^>]+>\s*\(/g, 'new $1<>(');
   code = code.replace(/(?:^[ \t]*import\s+[^;\n]+;\s*\r?\n){2,}/gm, (blk) => {
     const lns = blk.split('\n').map(l => l.trim().replace(/;$/, '')).filter(l => l);
@@ -722,7 +712,6 @@ function compressCpp(code, lang, mode) {
     const all = ang.concat(quo);
     return all.length >= 2 ? '#include <' + all.join(', ') + '>\n' : blk;
   });
-  code = code.replace(/\breturn\b/g, 'ret');
   code = code.replace(/\bunsigned\s+int\b/g, 'u32').replace(/\bunsigned\s+long\s+long\b/g, 'u64').replace(/\bunsigned\s+long\b/g, 'u64').replace(/\bunsigned\s+char\b/g, 'u8');
   code = code.replace(/\buint32_t\b/g, 'u32').replace(/\buint64_t\b/g, 'u64').replace(/\buint8_t\b/g, 'u8').replace(/\bint32_t\b/g, 'i32').replace(/\bint64_t\b/g, 'i64');
   code = code.replace(/\bsize_t\b/g, 'usize').replace(/\bssize_t\b/g, 'isize');
@@ -733,7 +722,7 @@ function compressCpp(code, lang, mode) {
     code = code.replace(/namespace\s+(\w+)\s*\{\s*\n\s*namespace\s+(\w+)\s*\{/g, 'namespace $1::$2 {');
     code = code.replace(/\bconst\s+auto&/g, 'auto&');
   }
-  code = code.replace(/^[ \t]*(?:static\s+|inline\s+|virtual\s+|explicit\s+|constexpr\s+|friend\s+)*(?:[a-zA-Z0-9_*&<>,]+\s+)+(?!(?:if|while|for|switch|catch|return|ret)\b)[a-zA-Z0-9_:]+\s*\([^;{]*?\)\s*(?:const\s*)?(?:noexcept\s*)?\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
+  code = code.replace(/^[ \t]*(?:static\s+|inline\s+|virtual\s+|explicit\s+|constexpr\s+|friend\s+)*(?:[a-zA-Z0-9_*&<>,]+\s+)+(?!(?:if|while|for|switch|catch|return)\b)[a-zA-Z0-9_:]+\s*\([^;{]*?\)\s*(?:const\s*)?(?:noexcept\s*)?\{/gm, (mt) => mt.replace(/\s*\n\s*/g, ' '));
   code = code.replace(/\bstruct\s+([A-Za-z0-9_]+)\b/g, '$1');
   code = inlineSmallBlocks(code, m);
   code = collapseParamLists(code, m);
@@ -751,9 +740,9 @@ function compressCSharp(code, mode) {
   code = stripVerboseLogging(code, m);
   code = code.replace(/\bpublic\s+static\s+readonly\b/g, 'const').replace(/\bprivate\s+static\s+readonly\b/g, 'priv const');
   code = code.replace(/\bpublic\s+static\b/g, 'pub static').replace(/\bprivate\s+static\b/g, 'priv static');
-  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\binternal\b/g, 'intnl').replace(/\breadonly\b/g, 'ro').replace(/\bboolean\b/g, 'bool').replace(/\breturn\b/g, 'ret').replace(/\bthis\./g, '');
-  code = code.replace(/\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*set\s*\{[^}]*?\}\s*\}/g, '{ get => $1; set; }');
-  code = code.replace(/\{\s*get\s*\{[^}]*?ret(?:urn)?\s+([^;]+?);\s*\}\s*\}/g, '{ get => $1; }');
+  code = code.replace(/\bpublic\b/g, 'pub').replace(/\bprivate\b/g, 'priv').replace(/\bprotected\b/g, 'prot').replace(/\binternal\b/g, 'intnl').replace(/\breadonly\b/g, 'ro').replace(/\bboolean\b/g, 'bool').replace(/\bthis\./g, '');
+  code = code.replace(/\{\s*get\s*\{[^}]*?return\s+([^;]+?);\s*\}\s*set\s*\{[^}]*?\}\s*\}/g, '{ get => $1; set; }');
+  code = code.replace(/\{\s*get\s*\{[^}]*?return\s+([^;]+?);\s*\}\s*\}/g, '{ get => $1; }');
   code = code.replace(/\{\s*get;\s*set;\s*\}/g, '{get;set;}');
   code = code.replace(/=>\s*\n\s*/g, '=> ');
   code = code.replace(/(?:pub\s+|priv\s+|prot\s+|intnl\s+|static\s+|async\s+|virtual\s+|override\s+|sealed\s+)*[a-zA-Z0-9_*&<>, \[\]?]+\s+[a-zA-Z0-9_]+\s*\([^)]*?\)\s*\{/g, (mt) => mt.replace(/\s*\n\s*/g, ' '));
@@ -845,7 +834,7 @@ function processCode() {
   const compTok = estimateTokensFallback(compressed);
   const savedTok = Math.max(0, rawTok - compTok);
   const pct = rawTok > 0 ? ((savedTok / rawTok) * 100).toFixed(1) : '0.0';
-  document.getElementById('rawMeta').innerText = '~' + rawTok.toLocaleString() + ' tokens';
+  document.getElementById('rawMeta').innerText = '~' + rawTok.toLocaleString() + ' tokens (estimated)';
   document.getElementById('statRawTokens').innerText = '~' + rawTok.toLocaleString();
   document.getElementById('statCompTokens').innerText = '~' + compTok.toLocaleString();
   document.getElementById('statSavedTokens').innerText = '~' + savedTok.toLocaleString();
