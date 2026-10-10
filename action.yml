@@ -1,0 +1,35 @@
+﻿name: "CaveCode Token Optimizer"
+description: "Compress source code and slash input tokens by up to 80% for coding agents using AST pruning."
+author: "Grimm67123"
+branding:
+  icon: "zap"
+  color: "yellow"
+
+inputs:
+  path:
+    description: "Path to file or directory to compress"
+    required: false
+    default: "."
+  mode:
+    description: "Compression mode: lite, medium, or ultra"
+    required: false
+    default: "ultra"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install CaveCode
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install git+https://github.com/Grimm67123/cavecode.git
+
+    - name: Run CaveCode
+      shell: bash
+      run: |
+        cavecode version
